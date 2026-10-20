@@ -1,4 +1,5 @@
 import { loadConfig } from './config.js';
+import { startHealthServer } from './health/server.js';
 import { createLogger } from './obs/log.js';
 import { createHubMetrics } from './obs/metrics.js';
 import { Relay } from './relay/relay.js';
@@ -35,10 +36,22 @@ const relay = new Relay(
 log.info({ hubId: config.HUB_ID, endpoint: config.IOT_ENDPOINT, port: config.MQTT_PORT, mqtt: config.MQTT_PROTOCOL_VERSION }, 'hearth-hub starting');
 relay.start();
 
+const health = await startHealthServer({
+  port: config.HEALTH_PORT,
+  hubId: config.HUB_ID,
+  registry: metrics.registry,
+  snapshot: () => ({
+    mqtt: relay.status,
+    modelLoaded: null, // set by the intent module in M3
+    lastCommandAt: metrics.lastCommandAt.get() || null,
+  }),
+});
+log.info({ port: health.port }, 'health endpoint on 127.0.0.1');
+
 for (const sig of ['SIGINT', 'SIGTERM'] as const) {
   process.once(sig, async () => {
     log.info({ sig }, 'shutting down');
-    await relay.stop();
+    await Promise.all([relay.stop(), health.close()]);
     process.exit(0);
   });
 }

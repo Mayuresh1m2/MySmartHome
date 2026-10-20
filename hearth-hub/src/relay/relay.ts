@@ -86,8 +86,9 @@ export class Relay {
     this.client.on('connect', () => void this.onConnect());
     this.client.on('message', (topic, payload) => void this.onMessage(topic, payload));
     this.client.on('error', (err) => {
+      // mqtt.js can emit the same connect error twice per attempt; log each distinct error once.
+      if (err.message !== this._lastError) this.log.warn({ stage: 'relay', err: err.message }, 'mqtt error');
       this._lastError = err.message;
-      this.log.warn({ stage: 'relay', err: err.message }, 'mqtt error');
     });
     this.client.on('close', () => {
       this.metrics.mqttConnected.set(0);

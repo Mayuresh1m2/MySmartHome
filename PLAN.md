@@ -97,7 +97,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [x] B1 hearth-hub scaffold: TS strict ESM, pino, vitest, zod v4, config loading
 - [x] B2 `scripts/make-csr.sh` (key never read by anything else) + local CA in `local-stack/` that signs the CSR
 - [x] B3 relay: mqtt.js v5, mTLS, QoS1, clean session, backoff reconnect, zod validation, staleness (10 s) + duplicate rules; replies "Hub is online." — unit + integration tests vs aedes
-- [ ] B4 health `/health` + `/metrics`, stage timing logs
+- [x] B4 health `/health` + `/metrics`, stage timing logs
 - [ ] B5 tools (`list_folder`, `disk_space`, `is_device_online`, `last_result`), keyword router, `policy.yaml` deny-by-default, audit JSONL, `pnpm try`
 
 ### Phase C — Cloud side, fully local (hearth-aws M1 + local stack)

@@ -10,3 +10,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 03 | [03-hub-scaffold.md](03-hub-scaffold.md) | B1 | done |
 | 04 | [04-hub-identity-and-local-ca.md](04-hub-identity-and-local-ca.md) | B2 | done |
 | 05 | [05-hub-relay.md](05-hub-relay.md) | B3 | done |
+| 06 | [06-hub-health-and-smoke.md](06-hub-health-and-smoke.md) | B4 | done |
