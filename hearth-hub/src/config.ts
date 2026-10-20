@@ -13,6 +13,8 @@ const Env = z.object({
   CERTS_DIR: z.string().default(join(hubRoot, 'certs')),
   /** CA that signs the broker's server cert. Amazon Root CA 1 in production, the local CA in local-stack. */
   CA_FILE: z.string().optional(),
+  /** Overrides certs/hub.crt. local-stack signs the same CSR with its own CA and points here. */
+  CERT_FILE: z.string().optional(),
   OLLAMA_HOST: z.string().default('http://127.0.0.1:11434'),
   OLLAMA_MODEL: z.string().default(''),
   INTENT: z.enum(['keyword', 'ollama']).default('keyword'),
@@ -51,7 +53,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): HubConfig {
     commandsTopic: `hearth/${c.HUB_ID}/commands`,
     repliesTopic: `hearth/${c.HUB_ID}/replies`,
     keyPath: join(c.CERTS_DIR, 'hub.key'),
-    certPath: join(c.CERTS_DIR, 'hub.crt'),
+    certPath: c.CERT_FILE ?? join(c.CERTS_DIR, 'hub.crt'),
     caPath: c.CA_FILE ?? join(c.CERTS_DIR, 'AmazonRootCA1.pem'),
   };
 }
