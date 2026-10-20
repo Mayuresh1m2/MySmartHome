@@ -5,3 +5,5 @@ packages:
   - contracts
   - local-stack
   - hearth-devices/sdk/ts
+allowBuilds:
+  esbuild: true

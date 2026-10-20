@@ -94,7 +94,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [x] A4 `scripts/doctor.sh`; initial commit on a branch
 
 ### Phase B — Hub, fully local (hearth-hub M1/M2 locally)
-- [ ] B1 hearth-hub scaffold: TS strict ESM, pino, vitest, zod v4, config loading
+- [x] B1 hearth-hub scaffold: TS strict ESM, pino, vitest, zod v4, config loading
 - [ ] B2 `scripts/make-csr.sh` (key never read by anything else) + local CA in `local-stack/` that signs the CSR
 - [ ] B3 relay: mqtt.js v5, mTLS, QoS1, clean session, backoff reconnect, zod validation, staleness (10 s) + duplicate rules; replies "Hub is online." — unit + integration tests vs aedes
 - [ ] B4 health `/health` + `/metrics`, stage timing logs
