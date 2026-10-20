@@ -132,7 +132,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [x] H1 aws M4: budget, alarm, log retention, `DEBUG_UTTERANCES`, CloudWatch dashboard, `docs/runbook.md` cert rotation — runbook awaits user review
 - [!] H2 hub M4: systemd user/system unit, restart on failure, journald rotation, reboot test (G6)
 - [x] C5 skill package (manifest + en-IN interaction model) with rule tests — privacy answers await user review
-- [ ] H3 aws M5: README for self-deployment incl. handoff
+- [x] H3 aws M5: README for self-deployment incl. handoff — ASK commands to be confirmed at M3 (G4)
 
 ### Phase I — Real devices (hearth-devices Phases 2–5) — per-device gates G7/G8
 - [!] I1 TV adapter (WoL, power, volume, mute, input/app, polling) with recorded fixtures

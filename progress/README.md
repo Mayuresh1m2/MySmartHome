@@ -21,3 +21,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 14 | [14-skill-package.md](14-skill-package.md) | aws M3 (offline part) | done; privacy answers await review |
 | 15 | [15-hub-ollama-intent.md](15-hub-ollama-intent.md) | D2 | code done; real model waits for G2 |
 | 16 | [16-hub-eval-harness.md](16-hub-eval-harness.md) | D3 | harness done; model run waits for G2 |
+| 17 | [17-readmes.md](17-readmes.md) | H3 | done; ASK commands confirmed at M3 |
