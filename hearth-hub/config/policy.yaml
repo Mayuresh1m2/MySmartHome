@@ -1,0 +1,30 @@
+# Deny by default: a tool that is not listed here is refused even if the model picks it.
+version: 1
+# Highest risk reachable by voice. The spec caps this at medium; nothing high is enabled in this version.
+voiceRiskCeiling: read
+globalRatePerMinute: 30
+
+tools:
+  ping:
+    enabled: true
+  disk_space:
+    enabled: true
+    settings:
+      path: /
+  list_folder:
+    enabled: true
+    ratePerMinute: 6
+    args:
+      folder: { enum: [downloads, documents] }
+    settings:
+      # 0 = speak only the count. File names leave the house through Amazon; raise this only if that's fine.
+      maxItems: 0
+      folders:
+        downloads: ~/Downloads
+        documents: ~/Documents
+  is_device_online:
+    enabled: true
+    args:
+      device: { maxLength: 40 }
+  last_result:
+    enabled: true

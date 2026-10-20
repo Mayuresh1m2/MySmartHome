@@ -11,3 +11,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 04 | [04-hub-identity-and-local-ca.md](04-hub-identity-and-local-ca.md) | B2 | done |
 | 05 | [05-hub-relay.md](05-hub-relay.md) | B3 | done |
 | 06 | [06-hub-health-and-smoke.md](06-hub-health-and-smoke.md) | B4 | done |
+| 07 | [07-hub-tools-policy-audit.md](07-hub-tools-policy-audit.md) | B5 | done |

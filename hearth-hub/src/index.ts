@@ -1,13 +1,14 @@
+import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
 import { startHealthServer } from './health/server.js';
 import { createLogger } from './obs/log.js';
 import { createHubMetrics } from './obs/metrics.js';
 import { Relay } from './relay/relay.js';
-import { makeReply } from './relay/schema.js';
 
 const config = loadConfig();
 const log = createLogger(config.LOG_LEVEL);
 const metrics = createHubMetrics();
+const app = buildApp(config, log, metrics);
 
 const relay = new Relay(
   {
@@ -22,18 +23,25 @@ const relay = new Relay(
     caPath: config.caPath,
   },
   {
-    // M1 behaviour: acknowledge every command. Replaced by the pipeline in M2.
-    onCommand: async (cmd) => {
-      log.info({ requestId: cmd.requestId, stage: 'reply', outcome: 'ok' }, 'command handled');
-      metrics.commands.inc({ outcome: 'ok' });
-      return makeReply(cmd.requestId, 'Hub is online.', 'ok');
-    },
+    onCommand: async (cmd, receivedAt) => (await app.pipeline(cmd, receivedAt)).reply,
+    onDropped: (d) =>
+      void app.audit.write({
+        requestId: d.requestId ?? null,
+        tool: null,
+        args: null,
+        decision: `dropped:${d.reason}`,
+        outcome: null,
+        latencyMs: Date.now() - d.receivedAt,
+      }),
   },
   log,
   metrics,
 );
 
-log.info({ hubId: config.HUB_ID, endpoint: config.IOT_ENDPOINT, port: config.MQTT_PORT, mqtt: config.MQTT_PROTOCOL_VERSION }, 'hearth-hub starting');
+log.info(
+  { hubId: config.HUB_ID, endpoint: config.IOT_ENDPOINT, port: config.MQTT_PORT, mqtt: config.MQTT_PROTOCOL_VERSION, intent: app.intent.name, tools: app.policy.enabledTools() },
+  'hearth-hub starting',
+);
 relay.start();
 
 const health = await startHealthServer({
