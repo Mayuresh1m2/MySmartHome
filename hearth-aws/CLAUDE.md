@@ -54,7 +54,7 @@ docs/runbook.md                   operations, including certificate rotation
 
 ## Config
 
-`config/local.json` holds `hubId`, `skillId`, `iotEndpoint`, `csrPath` (absolute path to the CSR that hearth-hub generated), `replyTimeoutMs`, `budgetEmail` and `locale` (default `en-IN`). Keep `config/example.json` in step with it. Committed files contain no account IDs, skill IDs, endpoints or certificates.
+`config/local.json` holds `hubId`, `skillId`, `iotEndpoint`, `csrPath` (absolute path to the CSR that hearth-hub generated), `replyTimeoutMs`, `budgetEmail` and `locale` (default `en-IN`). Keep `config/example.json` in step with it. Optional: `debugUtterances` (default false, sets `DEBUG_UTTERANCES`) and `certificates` (named list of CSRs for rotation; see `docs/runbook.md`). Committed files contain no account IDs, skill IDs, endpoints or certificates.
 
 ## Resource rules
 

@@ -17,3 +17,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 10 | [10-devices-sdks.md](10-devices-sdks.md) | E1 | done |
 | 11 | [11-devices-core-fake-adapter.md](11-devices-core-fake-adapter.md) | E2 | done |
 | 12 | [12-hub-device-gateway.md](12-hub-device-gateway.md) | F1 | done |
+| 13 | [13-aws-hardening.md](13-aws-hardening.md) | H1 (+ handoff.sh) | done; runbook awaits review |

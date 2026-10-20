@@ -2,6 +2,11 @@ import { CfnOutput, Duration, RemovalPolicy, Stack, type StackProps } from 'aws-
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
 import { PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { CfnCertificate, CfnPolicy, CfnPolicyPrincipalAttachment, CfnThing, CfnThingPrincipalAttachment, CfnTopicRule } from 'aws-cdk-lib/aws-iot';
+import { CfnBudget } from 'aws-cdk-lib/aws-budgets';
+import { Alarm, AlarmStatusWidget, ComparisonOperator, Dashboard, GraphWidget, Metric, TreatMissingData } from 'aws-cdk-lib/aws-cloudwatch';
+import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
+import { Topic } from 'aws-cdk-lib/aws-sns';
+import { EmailSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
@@ -25,11 +30,8 @@ export class HearthStack extends Stack {
     // The contract pins eu-west-1, which is always in the "aws" partition; a literal keeps ARNs exact and reviewable.
     const iotArn = (resource: string) => `arn:aws:iot:${this.region}:${this.account}:${resource}`;
 
-    // ---- Hub identity: certificate from the hub's CSR. AWS never creates or sees the private key.
-    const cert = new CfnCertificate(this, 'HubCertificate', {
-      certificateSigningRequest: config.csrPem,
-      status: 'ACTIVE',
-    });
+    // ---- Hub identity: certificates from the hub's CSRs. AWS never creates or sees the private key.
+    // Each certificate has a stable logical id from its config name, so rotation adds one rather than replacing.
     const thing = new CfnThing(this, 'HubThing', { thingName: name });
     const hubPolicy = new CfnPolicy(this, 'HubPolicy', {
       policyName: `${name}-policy`,
@@ -43,16 +45,28 @@ export class HearthStack extends Stack {
         ],
       },
     });
-    const policyAttach = new CfnPolicyPrincipalAttachment(this, 'HubPolicyAttachment', {
-      policyName: hubPolicy.policyName!,
-      principal: cert.attrArn,
-    });
-    policyAttach.addResourceDependency(hubPolicy);
-    const thingAttach = new CfnThingPrincipalAttachment(this, 'HubThingAttachment', {
-      thingName: thing.thingName!,
-      principal: cert.attrArn,
-    });
-    thingAttach.addResourceDependency(thing);
+    for (const c of config.hubCertificates) {
+      // The first certificate keeps the original logical ids so existing stacks are not replaced.
+      const suffix = c.name === 'primary' ? '' : c.name;
+      const cert = new CfnCertificate(this, `HubCertificate${suffix}`, {
+        certificateSigningRequest: c.csrPem,
+        status: c.active ? 'ACTIVE' : 'INACTIVE',
+      });
+      const policyAttach = new CfnPolicyPrincipalAttachment(this, `HubPolicyAttachment${suffix}`, {
+        policyName: hubPolicy.policyName!,
+        principal: cert.attrArn,
+      });
+      policyAttach.addResourceDependency(hubPolicy);
+      const thingAttach = new CfnThingPrincipalAttachment(this, `HubThingAttachment${suffix}`, {
+        thingName: thing.thingName!,
+        principal: cert.attrArn,
+      });
+      thingAttach.addResourceDependency(thing);
+      new CfnOutput(this, `HubCertificateId${suffix}`, {
+        value: cert.ref,
+        description: `Certificate "${c.name}" (${c.active ? 'ACTIVE' : 'INACTIVE'}); scripts/handoff.sh fetches its PEM`,
+      });
+    }
 
     // ---- Replies path: hub publishes → IoT rule → DynamoDB item with a 5-minute TTL.
     const replies = new Table(this, 'Replies', {
@@ -116,7 +130,7 @@ export class HearthStack extends Stack {
         IOT_ENDPOINT: config.iotEndpoint,
         REPLIES_TABLE: replies.tableName,
         REPLY_TIMEOUT_MS: String(config.replyTimeoutMs),
-        DEBUG_UTTERANCES: 'false',
+        DEBUG_UTTERANCES: String(config.debugUtterances),
       },
       bundling: {
         format: OutputFormat.CJS,
@@ -133,9 +147,68 @@ export class HearthStack extends Stack {
       eventSourceToken: config.skillId,
     });
 
+    // ---- Hardening (M4): Lambda error alarm by email, a $5/month budget, and a dashboard over the EMF metrics.
+    const alerts = new Topic(this, 'Alerts', { displayName: 'Hearth alerts' });
+    alerts.addSubscription(new EmailSubscription(config.budgetEmail));
+    const errors = new Alarm(this, 'SkillErrors', {
+      alarmDescription: 'The Hearth skill Lambda threw errors (not hub timeouts; those are handled replies).',
+      metric: fn.metricErrors({ period: Duration.minutes(5), statistic: 'Sum' }),
+      threshold: 1,
+      evaluationPeriods: 1,
+      comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      treatMissingData: TreatMissingData.NOT_BREACHING,
+    });
+    errors.addAlarmAction(new SnsAction(alerts));
+
+    new CfnBudget(this, 'MonthlyBudget', {
+      budget: {
+        budgetName: `hearth-${config.hubId}-monthly`,
+        budgetType: 'COST',
+        timeUnit: 'MONTHLY',
+        budgetLimit: { amount: 5, unit: 'USD' },
+      },
+      notificationsWithSubscribers: [
+        {
+          notification: { notificationType: 'ACTUAL', comparisonOperator: 'GREATER_THAN', threshold: 100, thresholdType: 'PERCENTAGE' },
+          subscribers: [{ subscriptionType: 'EMAIL', address: config.budgetEmail }],
+        },
+      ],
+    });
+
+    const emf = (metricName: string, outcome: string | undefined, statistic: string, label: string) =>
+      new Metric({
+        namespace: 'Hearth',
+        metricName,
+        dimensionsMap: outcome ? { HubId: config.hubId, Outcome: outcome } : { HubId: config.hubId },
+        statistic,
+        period: Duration.minutes(5),
+        label,
+      });
+    new Dashboard(this, 'Dashboard', {
+      dashboardName: `hearth-${config.hubId}`,
+      widgets: [
+        [
+          new GraphWidget({
+            title: 'Commands by outcome',
+            left: ['ok', 'refused', 'error', 'timeout', 'publish_failed', 'bad_reply'].map((o) => emf('Requests', o, 'Sum', o)),
+            width: 12,
+          }),
+          new GraphWidget({
+            title: 'Reply latency (ms)',
+            left: [emf('ReplyLatency', undefined, 'p50', 'p50'), emf('ReplyLatency', undefined, 'p95', 'p95')],
+            leftAnnotations: [{ value: config.replyTimeoutMs, label: 'reply timeout' }],
+            width: 12,
+          }),
+        ],
+        [
+          new GraphWidget({ title: 'Lambda errors / invocations', left: [fn.metricErrors(), fn.metricInvocations()], width: 12 }),
+          new AlarmStatusWidget({ title: 'Alarms', alarms: [errors], width: 12 }),
+        ],
+      ],
+    });
+
     new CfnOutput(this, 'SkillFunctionArn', { value: fn.functionArn, description: 'Set as the skill endpoint (ASK CLI)' });
     new CfnOutput(this, 'RepliesTableName', { value: replies.tableName });
-    new CfnOutput(this, 'HubCertificateId', { value: cert.ref, description: 'scripts/handoff.sh fetches this certificate PEM' });
     new CfnOutput(this, 'HubThingName', { value: name });
     new CfnOutput(this, 'RepliesRuleName', { value: rule.ref });
     new CfnOutput(this, 'IotEndpoint', { value: config.iotEndpoint });

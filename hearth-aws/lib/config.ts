@@ -10,8 +10,24 @@ export const HearthConfig = z.strictObject({
   replyTimeoutMs: z.int().positive().max(5000, 'contract: never above 5000').default(3000),
   budgetEmail: z.email(),
   locale: z.string().default('en-IN'),
+  /** Log utterance text in the skill's logs. Off by default. */
+  debugUtterances: z.boolean().default(false),
+  /**
+   * Hub certificates, each from its own CSR under a stable name (so rotation adds a certificate instead of
+   * replacing one). When omitted, csrPath is the single certificate "primary".
+   */
+  certificates: z
+    .array(z.strictObject({ name: z.string().regex(/^[A-Za-z0-9]+$/), csrPath: z.string().min(1), active: z.boolean().default(true) }))
+    .min(1)
+    .optional(),
 });
-export type HearthConfig = z.infer<typeof HearthConfig> & { csrPem: string };
+
+export interface HubCertificate {
+  name: string;
+  csrPem: string;
+  active: boolean;
+}
+export type HearthConfig = z.infer<typeof HearthConfig> & { csrPem: string; hubCertificates: HubCertificate[] };
 
 /** Loads config/local.json (or HEARTH_CONFIG) relative to the project root and reads the hub's CSR. */
 export function loadConfig(projectRoot: string, file = process.env.HEARTH_CONFIG ?? 'config/local.json'): HearthConfig {
@@ -24,9 +40,17 @@ export function loadConfig(projectRoot: string, file = process.env.HEARTH_CONFIG
   }
   const parsed = HearthConfig.safeParse(raw);
   if (!parsed.success) throw new Error(`Invalid ${file}:\n${z.prettifyError(parsed.error)}`);
-  const csrPath = isAbsolute(parsed.data.csrPath) ? parsed.data.csrPath : resolve(projectRoot, parsed.data.csrPath);
-  const csrPem = readFileSync(csrPath, 'utf8');
-  if (!csrPem.includes('BEGIN CERTIFICATE REQUEST')) throw new Error(`${csrPath} is not a PEM CSR`);
-  if (csrPem.includes('PRIVATE KEY')) throw new Error(`${csrPath} contains a private key. Point csrPath at the .csr only.`);
-  return { ...parsed.data, csrPem };
+  const readCsr = (p: string) => {
+    const path = isAbsolute(p) ? p : resolve(projectRoot, p);
+    const pem = readFileSync(path, 'utf8');
+    if (!pem.includes('BEGIN CERTIFICATE REQUEST')) throw new Error(`${path} is not a PEM CSR`);
+    if (pem.includes('PRIVATE KEY')) throw new Error(`${path} contains a private key. Point csrPath at the .csr only.`);
+    return pem;
+  };
+  const certs = parsed.data.certificates ?? [{ name: 'primary', csrPath: parsed.data.csrPath, active: true }];
+  const names = new Set(certs.map((c) => c.name));
+  if (names.size !== certs.length) throw new Error('certificate names must be unique');
+  if (!certs.some((c) => c.active)) throw new Error('at least one certificate must be active, or the hub cannot connect');
+  const hubCertificates = certs.map((c) => ({ name: c.name, csrPem: readCsr(c.csrPath), active: c.active }));
+  return { ...parsed.data, csrPem: hubCertificates[0]!.csrPem, hubCertificates };
 }

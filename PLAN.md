@@ -119,7 +119,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 
 ### Phase F — Hub gateway seam (hearth-hub M5)
 - [x] F1 `DeviceGateway` interface, `devices.json` impl, fake gateway, device tools generated from capabilities and filtered by policy; test that swapping gateway needs no intent/tools change
-- [ ] F2 MQTT gateway against hearth-devices local contract (devices Phase 4)
+- [!] F2 MQTT gateway against hearth-devices local contract (devices Phase 4) — needs decision: route hub commands through devices core (adds request topics = contract change) vs hub as its own bus client
 
 ### Phase G — Go to the cloud — needs G3/G4/G9
 - [!] G1' AWS CLI + profile, `cdk bootstrap`; `config/local.json`
@@ -129,7 +129,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [!] G5' hub M2 acceptance: "Alexa, ask home hearth how much space is left" end to end
 
 ### Phase H — Hardening and operations
-- [ ] H1 aws M4: budget, alarm, log retention, `DEBUG_UTTERANCES`, CloudWatch dashboard, `docs/runbook.md` cert rotation (user review)
+- [x] H1 aws M4: budget, alarm, log retention, `DEBUG_UTTERANCES`, CloudWatch dashboard, `docs/runbook.md` cert rotation — runbook awaits user review
 - [!] H2 hub M4: systemd user/system unit, restart on failure, journald rotation, reboot test (G6)
 - [ ] H3 aws M5: README for self-deployment incl. handoff
 

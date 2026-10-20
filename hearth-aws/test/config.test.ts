@@ -33,3 +33,15 @@ describe('loadConfig', () => {
     expect(() => loadConfig(root, 'config/nope.json')).toThrow(/Copy config\/example.json/);
   });
 });
+
+describe('certificates config', () => {
+  it('requires unique names and at least one active certificate', () => {
+    const csrPath = join(root, 'test/fixtures/example.csr');
+    expect(withConfig({ certificates: [{ name: 'a', csrPath }, { name: 'a', csrPath }] })).toThrow(/unique/);
+    expect(withConfig({ certificates: [{ name: 'a', csrPath, active: false }] })).toThrow(/at least one certificate must be active/);
+    expect(withConfig({ certificates: [{ name: 'a', csrPath }, { name: 'b', csrPath, active: false }] })().hubCertificates.map((c) => [c.name, c.active])).toEqual([
+      ['a', true],
+      ['b', false],
+    ]);
+  });
+});
