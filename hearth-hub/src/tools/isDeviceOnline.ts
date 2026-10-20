@@ -9,7 +9,7 @@ export const isDeviceOnline = defineTool({
   async run({ device }, ctx) {
     const d = await ctx.devices.find(device);
     if (!d) return { speech: `I don't know a device called ${device}.` };
-    const online = await ctx.devices.isOnline(d.id);
+    const { online } = await ctx.devices.getState(d.id);
     // Speak the friendly name only; never the address.
     return { speech: `The ${d.name} is ${online ? 'online' : 'not responding'}.` };
   },

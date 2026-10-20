@@ -16,3 +16,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 09 | [09-local-stack-e2e.md](09-local-stack-e2e.md) | C3, C4 | done |
 | 10 | [10-devices-sdks.md](10-devices-sdks.md) | E1 | done |
 | 11 | [11-devices-core-fake-adapter.md](11-devices-core-fake-adapter.md) | E2 | done |
+| 12 | [12-hub-device-gateway.md](12-hub-device-gateway.md) | F1 | done |

@@ -90,7 +90,7 @@ export function createPipeline(d: PipelineDeps) {
             status = 'refused';
             speech = SPEECH.policy[verdict.reason];
           } else {
-            const result = await timed('tool', () => t.run(parsed.data, { ...d.toolContext, settings: verdict.settings }));
+            const result = await timed('tool', () => t.run(parsed.data, { ...d.toolContext, settings: verdict.settings, requestId: cmd.requestId }));
             decision = 'allowed';
             status = 'ok';
             speech = result.speech;

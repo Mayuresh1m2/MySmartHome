@@ -8,7 +8,7 @@ import { Relay } from './relay/relay.js';
 const config = loadConfig();
 const log = createLogger(config.LOG_LEVEL);
 const metrics = createHubMetrics();
-const app = buildApp(config, log, metrics);
+const app = await buildApp(config, log, metrics);
 
 const relay = new Relay(
   {

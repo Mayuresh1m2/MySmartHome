@@ -14,7 +14,7 @@ if (!text) {
 process.env.IOT_ENDPOINT ??= 'unused';
 const config = loadConfig();
 const log = createLogger(process.env.LOG_LEVEL ?? 'warn');
-const app = buildApp(config, log, createHubMetrics());
+const app = await buildApp(config, log, createHubMetrics());
 const r = await app.pipeline({ requestId: randomUUID(), text });
 await app.audit.flush();
 console.log(JSON.stringify({ text, intent: app.intent.name, tool: r.tool, args: r.args, decision: r.decision, status: r.reply.status, speech: r.reply.speech, stagesMs: r.stages }, null, 2));

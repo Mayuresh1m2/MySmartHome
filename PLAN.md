@@ -118,7 +118,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [!] E4 Phase 0 research: device table (needs G9 from user), one doc per device, classification and order — research subagents only when the user wants them
 
 ### Phase F — Hub gateway seam (hearth-hub M5)
-- [ ] F1 `DeviceGateway` interface, `devices.json` impl, fake gateway, device tools generated from capabilities and filtered by policy; test that swapping gateway needs no intent/tools change
+- [x] F1 `DeviceGateway` interface, `devices.json` impl, fake gateway, device tools generated from capabilities and filtered by policy; test that swapping gateway needs no intent/tools change
 - [ ] F2 MQTT gateway against hearth-devices local contract (devices Phase 4)
 
 ### Phase G — Go to the cloud — needs G3/G4/G9

@@ -20,6 +20,8 @@ export interface ToolContext {
   fs: ToolFs;
   /** Tool-specific settings from policy.yaml (e.g. the folder aliases for list_folder). */
   settings: Record<string, unknown>;
+  /** The command's requestId, passed on to devices so one id traces Alexa → hub → device. */
+  requestId?: string;
 }
 
 export interface ToolResult {
