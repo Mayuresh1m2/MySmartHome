@@ -90,8 +90,8 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 ### Phase A — Foundation
 - [x] A1 Monorepo layout: move specs into `hearth-aws/`, `hearth-hub/`, `hearth-devices/` (+ `docs/device-leads.md`); root `.gitignore`; pnpm workspace; `.claude/settings.json` guardrails (merged root + per project)
 - [x] A2 Toolchain without sudo: pnpm via corepack into `~/.local/bin`; record versions
-- [ ] A3 `contracts/` schemas + fixtures + drift test
-- [ ] A4 `scripts/doctor.sh`; initial commit on a branch
+- [x] A3 `contracts/` schemas + fixtures + drift test
+- [x] A4 `scripts/doctor.sh`; initial commit on a branch
 
 ### Phase B — Hub, fully local (hearth-hub M1/M2 locally)
 - [ ] B1 hearth-hub scaffold: TS strict ESM, pino, vitest, zod v4, config loading

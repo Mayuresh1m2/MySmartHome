@@ -1,0 +1,23 @@
+{
+  "name": "@hearth/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "JSON Schemas and fixtures for the Hearth cloud-hub (v1) and local device (v0) contracts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./cloud-hub/v1/*": "./cloud-hub/v1/*",
+    "./local-devices/v0/*": "./local-devices/v0/*"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hearth.local/contracts/cloud-hub/v1/command.schema.json",
+  "title": "Hearth command (cloud to hub), topic hearth/<hubId>/commands",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "requestId", "text", "sentAt"],
+  "properties": {
+    "v": { "const": 1 },
+    "requestId": { "type": "string", "format": "uuid" },
+    "text": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "sentAt": { "type": "integer", "minimum": 0 }
+  }
+}

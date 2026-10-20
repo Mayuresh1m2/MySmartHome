@@ -1,0 +1,15 @@
+{
+  "v": 1,
+  "region": "eu-west-1",
+  "hubIdPattern": "^[a-z0-9-]+$",
+  "defaultHubId": "laptop",
+  "clientIdPrefix": "hearth-",
+  "commandsTopic": "hearth/{hubId}/commands",
+  "repliesTopic": "hearth/{hubId}/replies",
+  "qos": 1,
+  "alexaWaitMs": 8000,
+  "replyTimeoutMsDefault": 3000,
+  "replyTimeoutMsMax": 5000,
+  "hubStaleAfterMs": 10000,
+  "replyTtlSeconds": 300
+}

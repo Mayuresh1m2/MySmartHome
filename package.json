@@ -8,6 +8,6 @@
     "test": "pnpm -r --if-present test",
     "lint": "pnpm -r --if-present lint",
     "typecheck": "pnpm -r --if-present typecheck",
-    "doctor": "bash scripts/doctor.sh"
+    "hearth:doctor": "bash scripts/doctor.sh"
   }
 }

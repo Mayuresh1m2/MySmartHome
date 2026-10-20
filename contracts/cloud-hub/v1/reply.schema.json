@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hearth.local/contracts/cloud-hub/v1/reply.schema.json",
+  "title": "Hearth reply (hub to cloud), topic hearth/<hubId>/replies",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "requestId", "speech", "status"],
+  "properties": {
+    "v": { "const": 1 },
+    "requestId": { "type": "string", "format": "uuid" },
+    "speech": { "type": "string", "minLength": 1, "maxLength": 400 },
+    "status": { "enum": ["ok", "refused", "error"] }
+  }
+}
