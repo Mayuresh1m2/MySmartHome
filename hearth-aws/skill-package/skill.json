@@ -1,0 +1,38 @@
+{
+  "manifest": {
+    "manifestVersion": "1.0",
+    "publishingInformation": {
+      "locales": {
+        "en-IN": {
+          "name": "Home Hearth",
+          "summary": "Relays what you say to your own home hub and reads back its answer.",
+          "description": "Home Hearth forwards a spoken command to a hub running in your own home, which decides what to do with a local model and a fixed list of allowed tools, then speaks the hub's short reply. Requires your own Hearth hub. Development use only.",
+          "examplePhrases": [
+            "Alexa, open home hearth",
+            "Alexa, ask home hearth how much space is left",
+            "Alexa, ask home hearth to ping"
+          ],
+          "keywords": ["home", "hub", "hearth"]
+        }
+      },
+      "isAvailableWorldwide": false,
+      "distributionCountries": ["IN"],
+      "category": "SMART_HOME",
+      "testingInstructions": "Development-only skill. Requires the owner's Hearth hub to be running; without it the skill answers that the hub did not reply in time."
+    },
+    "privacyAndCompliance": {
+      "allowsPurchases": false,
+      "usesPersonalInfo": false,
+      "isChildDirected": false,
+      "isExportCompliant": true,
+      "containsAds": false
+    },
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "uri": "REPLACE_WITH_SkillFunctionArn_STACK_OUTPUT"
+        }
+      }
+    }
+  }
+}

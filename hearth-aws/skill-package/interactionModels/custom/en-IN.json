@@ -1,0 +1,43 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "home hearth",
+      "intents": [
+        {
+          "name": "CommandIntent",
+          "slots": [{ "name": "command", "type": "COMMAND_TEXT" }],
+          "samples": ["{command}"]
+        },
+        { "name": "AMAZON.HelpIntent", "samples": [] },
+        { "name": "AMAZON.StopIntent", "samples": [] },
+        { "name": "AMAZON.CancelIntent", "samples": [] },
+        { "name": "AMAZON.NavigateHomeIntent", "samples": [] }
+      ],
+      "types": [
+        {
+          "name": "COMMAND_TEXT",
+          "values": [
+            { "name": { "value": "ping" } },
+            { "name": { "value": "how much space is left" } },
+            { "name": { "value": "how much disk space do I have" } },
+            { "name": { "value": "is the router online" } },
+            { "name": { "value": "is the living room tv up" } },
+            { "name": { "value": "list my downloads folder" } },
+            { "name": { "value": "what's in my documents folder" } },
+            { "name": { "value": "what happened" } },
+            { "name": { "value": "say that again" } },
+            { "name": { "value": "check if the printer is reachable" } },
+            { "name": { "value": "turn on the desk lamp" } },
+            { "name": { "value": "switch off the bedroom light" } },
+            { "name": { "value": "start the vacuum in the hall" } },
+            { "name": { "value": "is the dishwasher running" } },
+            { "name": { "value": "how full is the main disk" } },
+            { "name": { "value": "tell me the hub status" } },
+            { "name": { "value": "show me the newest files in downloads" } },
+            { "name": { "value": "are you there" } }
+          ]
+        }
+      ]
+    }
+  }
+}
