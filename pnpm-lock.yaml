@@ -256,6 +256,34 @@ importers:
         specifier: ^5.0.5
         version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@22.20.5)(vite@8.3.4(@types/node@22.20.5)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
 
+  hearth-devices/sdk/ts:
+    dependencies:
+      '@hearth/contracts':
+        specifier: workspace:*
+        version: link:../../../contracts
+      ajv:
+        specifier: ^8.20.0
+        version: 8.20.0
+      ajv-formats:
+        specifier: ^3.0.1
+        version: 3.0.1(ajv@8.20.0)
+      mqtt:
+        specifier: ^5.16.1
+        version: 5.16.1(supports-color@7.2.0)
+    devDependencies:
+      '@hearth/local-stack':
+        specifier: workspace:*
+        version: link:../../../local-stack
+      '@types/node':
+        specifier: ^22.20.5
+        version: 22.20.5
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vitest:
+        specifier: ^5.0.5
+        version: 5.0.5(@opentelemetry/api@1.9.1)(@types/node@22.20.5)(vite@8.3.4(@types/node@22.20.5)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
+
   hearth-hub:
     dependencies:
       mqtt:

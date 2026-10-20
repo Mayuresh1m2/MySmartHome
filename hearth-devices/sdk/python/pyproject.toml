@@ -1,0 +1,32 @@
+[project]
+name = "hearth-devices-sdk"
+version = "0.1.0"
+description = "Hearth devices adapter SDK: MQTT plumbing, meta/state/result publishing, last will and contract validation"
+requires-python = ">=3.12"
+dependencies = [
+    "aiomqtt>=2.5.1",
+    "jsonschema>=4.26.0",
+    "pydantic>=2.14.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.10.11,<0.11.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.17.1",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "RUF"]

@@ -27,3 +27,6 @@ local-stack/.state/
 
 # IDE
 .idea/workspace.xml
+
+# python
+*.egg-info/

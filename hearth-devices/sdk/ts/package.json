@@ -1,0 +1,26 @@
+{
+  "name": "@hearth/devices-sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hearth devices adapter SDK for Node adapters: MQTT plumbing, meta/state/result, last will, contract validation",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hearth/contracts": "workspace:*",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "mqtt": "^5.16.1"
+  },
+  "devDependencies": {
+    "@hearth/local-stack": "workspace:*",
+    "@types/node": "^22.20.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

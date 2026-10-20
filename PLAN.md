@@ -112,7 +112,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [ ] D3 `pnpm eval` with ≥ 40 phrasings incl. must-refuse; target ≥ 90 %, all refusals, p95 < 4 s
 
 ### Phase E — Devices platform skeleton (hearth-devices Phase 1) — local; Mosquitto needs G1
-- [ ] E1 Python SDK (uv, aiomqtt, pydantic, ruff, pytest) + TS SDK (vitest): meta/state/result publishing, last will, schema validation against `contracts/local-devices/v0`
+- [x] E1 Python SDK (uv, aiomqtt, pydantic, ruff, pytest) + TS SDK (vitest): meta/state/result publishing, last will, schema validation against `contracts/local-devices/v0`
 - [ ] E2 fake adapter, registry, audit log, policy by risk class; tests on aedes/amqtt in-process
 - [!] E3 Mosquitto with auth (docker or apt), acceptance: fake adapter appears, handles `set`, publishes `result`+`state`, goes offline via last will
 - [!] E4 Phase 0 research: device table (needs G9 from user), one doc per device, classification and order — research subagents only when the user wants them

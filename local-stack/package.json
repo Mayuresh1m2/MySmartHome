@@ -6,12 +6,14 @@
   "description": "Runs Hearth end to end on one machine: emulated IoT Core broker (mTLS + policy ACLs), rule, DynamoDB and skill",
   "exports": {
     ".": "./src/index.ts",
-    "./test-certs": "./src/testCerts.ts"
+    "./test-certs": "./src/testCerts.ts",
+    "./bus": "./src/bus.ts"
   },
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "broker": "tsx src/cli/broker.ts"
+    "broker": "tsx src/cli/broker.ts",
+    "bus": "tsx src/cli/bus.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1153.0",

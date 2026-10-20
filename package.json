@@ -7,7 +7,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "test": "pnpm -r --if-present test",
+    "test": "pnpm test:js && pnpm test:py",
     "lint": "pnpm -r --if-present lint",
     "typecheck": "pnpm -r --if-present typecheck",
     "hearth:doctor": "bash scripts/doctor.sh",
@@ -15,7 +15,9 @@
     "local:down": "bash local-stack/scripts/down.sh",
     "local:say": "tsx local-stack/src/cli/say.ts",
     "local:logs": "tail -f local-stack/.state/logs/stack.log local-stack/.state/logs/hub.log",
-    "hearth:trace": "bash scripts/trace.sh"
+    "hearth:trace": "bash scripts/trace.sh",
+    "test:js": "pnpm -r --if-present test",
+    "test:py": "cd hearth-devices/sdk/python && uv run ruff check . && uv run pytest -q"
   },
   "devDependencies": {
     "tsx": "^4.23.15"
