@@ -9,3 +9,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 02 | [02-contracts-and-doctor.md](02-contracts-and-doctor.md) | A3, A4 | done |
 | 03 | [03-hub-scaffold.md](03-hub-scaffold.md) | B1 | done |
 | 04 | [04-hub-identity-and-local-ca.md](04-hub-identity-and-local-ca.md) | B2 | done |
+| 05 | [05-hub-relay.md](05-hub-relay.md) | B3 | done |

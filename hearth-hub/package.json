@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@hearth/contracts": "workspace:*",
+    "@hearth/local-stack": "workspace:*",
     "@types/node": "^22.20.5",
     "aedes": "^1.2.0",
     "ajv": "^8.20.0",

@@ -1,0 +1,24 @@
+{
+  "name": "@hearth/local-stack",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Runs Hearth end to end on one machine: emulated IoT Core broker (mTLS + policy ACLs), rule, DynamoDB and skill",
+  "exports": {
+    ".": "./src/index.ts",
+    "./test-certs": "./src/testCerts.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "aedes": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "mqtt": "^5.16.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

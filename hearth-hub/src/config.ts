@@ -10,6 +10,8 @@ const Env = z.object({
   HUB_ID: z.string().regex(/^[a-z0-9-]+$/, 'lowercase letters, digits and hyphens').default('laptop'),
   AWS_REGION: z.string().default('eu-west-1'),
   MQTT_PORT: z.coerce.number().int().positive().default(8883),
+  /** 5 for AWS IoT Core. local-stack's aedes broker only speaks 3.1.1, so it sets 4. */
+  MQTT_PROTOCOL_VERSION: z.coerce.number().pipe(z.union([z.literal(4), z.literal(5)])).default(5),
   CERTS_DIR: z.string().default(join(hubRoot, 'certs')),
   /** CA that signs the broker's server cert. Amazon Root CA 1 in production, the local CA in local-stack. */
   CA_FILE: z.string().optional(),
