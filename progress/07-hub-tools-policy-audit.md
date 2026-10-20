@@ -50,7 +50,7 @@ Tests:
 
 ```text
 $ pnpm --filter @hearth/hub test
- Test Files  12 passed
+ Test Files  10 passed (10)
       Tests  87 passed (87)
 ```
 

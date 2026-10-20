@@ -1,0 +1,30 @@
+{
+  "name": "@hearth/skill",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Alexa skill Lambda: forwards spoken commands to the Hearth hub through AWS IoT Core",
+  "exports": {
+    ".": "./src/index.ts",
+    "./core": "./src/skill.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1153.0",
+    "@aws-sdk/client-iot-data-plane": "^3.1153.0",
+    "ask-sdk-core": "^2.14.0",
+    "ask-sdk-model": "^1.86.0"
+  },
+  "devDependencies": {
+    "@hearth/contracts": "workspace:*",
+    "@types/node": "^22.20.5",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "aws-sdk-client-mock": "^4.1.0",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

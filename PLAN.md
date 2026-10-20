@@ -101,8 +101,8 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [x] B5 tools (`list_folder`, `disk_space`, `is_device_online`, `last_result`), keyword router, `policy.yaml` deny-by-default, audit JSONL, `pnpm try`
 
 ### Phase C — Cloud side, fully local (hearth-aws M1 + local stack)
-- [ ] C1 hearth-aws scaffold: CDK v2 app, config loading (`config/example.json`), skill handler with ports, unit tests (aws-sdk-client-mock)
-- [ ] C2 CDK stack: cert from CSR, thing, policy, table+TTL, rule, Lambda (Node 22, 7 s, 256 MB), invoke permission with skill ID, logs 14 d — assertion tests for least privilege + no function URL; `pnpm cdk synth` green
+- [x] C1 hearth-aws scaffold: CDK v2 app, config loading (`config/example.json`), skill handler with ports, unit tests (aws-sdk-client-mock)
+- [x] C2 CDK stack: cert from CSR, thing, policy, table+TTL, rule, Lambda (Node 22, 7 s, 256 MB), invoke permission with skill ID, logs 14 d — assertion tests for least privilege + no function URL; `pnpm cdk synth` green
 - [ ] C3 `local-stack/`: aedes mTLS broker with IoT-equivalent ACLs, rule emulator, dynalite table, local skill runner, `local:up/down/say`
 - [ ] C4 Local e2e test: request → hub → spoken reply; hub off → fallback; trace by `requestId`
 
