@@ -31,18 +31,22 @@ function setup(decision: Decision, opts: { auditText?: boolean; policy?: object 
   );
   const tools = toolMap([...toolMap().values(), boom, lamp] as Tool[]);
   const c = ctx();
+  const audit = new AuditLog(dir, opts.auditText ?? true);
   const handle = createPipeline({
     intent: fixed(decision),
     policy,
     tools,
-    audit: new AuditLog(dir, opts.auditText ?? true),
+    audit,
     state,
     log: silentLog,
     metrics,
     toolContext: { log: c.log, state, devices: c.devices, fs: c.fs },
   });
-  const auditLines = () =>
-    readdirSync(dir).flatMap((f) => readFileSync(join(dir, f), 'utf8').trim().split('\n').map((l) => JSON.parse(l)));
+  /** The pipeline does not wait for the audit write, so flush before reading. */
+  const auditLines = async () => {
+    await audit.flush();
+    return readdirSync(dir).flatMap((f) => readFileSync(join(dir, f), 'utf8').trim().split('\n').map((l) => JSON.parse(l)));
+  };
   return { handle, metrics, state, auditLines };
 }
 
@@ -55,7 +59,7 @@ describe('pipeline', () => {
     expect(ReplyV1.parse(r.reply)).toMatchObject({ status: 'ok', speech: 'Hub is online.' });
     expect(r.decision).toBe('allowed');
     expect(Object.keys(r.stages)).toEqual(expect.arrayContaining(['intent', 'policy', 'tool', 'total']));
-    const [line] = s.auditLines();
+    const [line] = await s.auditLines();
     expect(line).toMatchObject({ requestId: cmd.requestId, text: 'do the thing', tool: 'ping', decision: 'allowed', outcome: 'ok' });
     expect(s.state.lastResult()?.tool).toBe('ping');
     expect(s.metrics.commands.get({ outcome: 'ok' })).toBe(1);
@@ -97,7 +101,7 @@ describe('pipeline', () => {
   it('audits only the text length when AUDIT_TEXT=false', async () => {
     const s = setup({ kind: 'tool', tool: 'ping', args: {} }, { auditText: false });
     await s.handle(cmd);
-    const [line] = s.auditLines();
+    const [line] = await s.auditLines();
     expect(line.text).toBeUndefined();
     expect(line.textLength).toBe(cmd.text.length);
   });
@@ -105,6 +109,6 @@ describe('pipeline', () => {
   it('audit lines from concurrent commands do not interleave', async () => {
     const s = setup({ kind: 'tool', tool: 'ping', args: {} });
     await Promise.all(Array.from({ length: 20 }, (_, i) => s.handle({ requestId: `${cmd.requestId.slice(0, -2)}${String(i).padStart(2, '0')}`, text: 'x' })));
-    expect(s.auditLines()).toHaveLength(20);
+    expect(await s.auditLines()).toHaveLength(20);
   });
 });

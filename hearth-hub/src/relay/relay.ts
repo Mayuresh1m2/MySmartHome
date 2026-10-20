@@ -112,6 +112,8 @@ export class Relay {
   private async onConnect(): Promise<void> {
     this.attempt = 0;
     this._lastConnectedAt = Date.now();
+    // Small request/reply messages: disable Nagle so a reply isn't held back waiting for a delayed ACK (~40 ms).
+    (this.client!.stream as { setNoDelay?: (on: boolean) => void }).setNoDelay?.(true);
     this._lastError = undefined;
     try {
       // Clean session: subscriptions do not survive a reconnect, so subscribe on every connect.

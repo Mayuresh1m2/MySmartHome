@@ -110,7 +110,8 @@ export function createPipeline(d: PipelineDeps) {
     d.metrics.commands.inc({ outcome: status });
     d.state.record({ requestId: cmd.requestId, tool, status, speech: reply.speech, at: Date.now() });
     d.log.info({ requestId: cmd.requestId, stage: 'done', tool, decision, outcome: status, latencyMs: stages.total, stages }, 'command handled');
-    await d.audit
+    // Spec flow is "... reply, audit": the audit write must not delay the reply. Writes are serialised in AuditLog.
+    void d.audit
       .write({ requestId: cmd.requestId, text: cmd.text, tool, args, decision, outcome: status, latencyMs: stages.total, stages })
       .catch((err: Error) => d.log.error({ requestId: cmd.requestId, err: err.message }, 'audit write failed'));
     return { reply, tool, args, decision, stages };

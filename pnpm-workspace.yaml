@@ -6,4 +6,5 @@ packages:
   - local-stack
   - hearth-devices/sdk/ts
 allowBuilds:
+  classic-level: false
   esbuild: true

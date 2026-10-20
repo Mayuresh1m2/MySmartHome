@@ -6,7 +6,8 @@
   "description": "Alexa skill Lambda: forwards spoken commands to the Hearth hub through AWS IoT Core",
   "exports": {
     ".": "./src/index.ts",
-    "./core": "./src/skill.ts"
+    "./core": "./src/skill.ts",
+    "./ports": "./src/ports.ts"
   },
   "scripts": {
     "test": "vitest run",

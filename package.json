@@ -3,11 +3,21 @@
   "private": true,
   "type": "module",
   "packageManager": "pnpm@12.14.0",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "pnpm -r --if-present test",
     "lint": "pnpm -r --if-present lint",
     "typecheck": "pnpm -r --if-present typecheck",
-    "hearth:doctor": "bash scripts/doctor.sh"
+    "hearth:doctor": "bash scripts/doctor.sh",
+    "local:up": "bash local-stack/scripts/up.sh",
+    "local:down": "bash local-stack/scripts/down.sh",
+    "local:say": "tsx local-stack/src/cli/say.ts",
+    "local:logs": "tail -f local-stack/.state/logs/stack.log local-stack/.state/logs/hub.log",
+    "hearth:trace": "bash scripts/trace.sh"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15"
   }
 }

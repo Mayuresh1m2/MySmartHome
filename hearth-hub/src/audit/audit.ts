@@ -42,4 +42,9 @@ export class AuditLog {
     });
     return this.chain;
   }
+
+  /** Resolves when every queued line is on disk. */
+  flush(): Promise<void> {
+    return this.chain;
+  }
 }

@@ -13,3 +13,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 06 | [06-hub-health-and-smoke.md](06-hub-health-and-smoke.md) | B4 | done |
 | 07 | [07-hub-tools-policy-audit.md](07-hub-tools-policy-audit.md) | B5 | done |
 | 08 | [08-aws-skill-and-cdk.md](08-aws-skill-and-cdk.md) | C1, C2 | done |
+| 09 | [09-local-stack-e2e.md](09-local-stack-e2e.md) | C3, C4 | done |

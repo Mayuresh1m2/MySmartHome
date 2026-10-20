@@ -103,8 +103,8 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 ### Phase C — Cloud side, fully local (hearth-aws M1 + local stack)
 - [x] C1 hearth-aws scaffold: CDK v2 app, config loading (`config/example.json`), skill handler with ports, unit tests (aws-sdk-client-mock)
 - [x] C2 CDK stack: cert from CSR, thing, policy, table+TTL, rule, Lambda (Node 22, 7 s, 256 MB), invoke permission with skill ID, logs 14 d — assertion tests for least privilege + no function URL; `pnpm cdk synth` green
-- [ ] C3 `local-stack/`: aedes mTLS broker with IoT-equivalent ACLs, rule emulator, dynalite table, local skill runner, `local:up/down/say`
-- [ ] C4 Local e2e test: request → hub → spoken reply; hub off → fallback; trace by `requestId`
+- [x] C3 `local-stack/`: aedes mTLS broker with IoT-equivalent ACLs, rule emulator, dynalite table, local skill runner, `local:up/down/say`
+- [x] C4 Local e2e test: request → hub → spoken reply; hub off → fallback; trace by `requestId`
 
 ### Phase D — Local model (hearth-hub M3) — needs G2
 - [!] D1 Install Ollama, benchmark candidate models on this CPU, pick one, record in Environment
