@@ -11,7 +11,7 @@ export class KeywordRouter implements IntentEngine {
     if (/\b(what happened|last (result|command)|say that again)\b/.test(text)) {
       return { kind: 'tool', tool: 'last_result', args: {} };
     }
-    if (/\b(disk|space|storage)\b/.test(text) && !/\b(delete|remove|clear|free up)\b/.test(text)) {
+    if (/\b(disk|space|storage)\b/.test(text) && !/\b(delete|remove|clear|free up|format|wipe|erase|buy|order)\b/.test(text)) {
       return { kind: 'tool', tool: 'disk_space', args: {} };
     }
     const folder = text.match(/\b(?:list|what'?s in|what is in|show(?: me)?)\s+(?:my |the )?([a-z0-9_-]+)(?: folder)?\b/);

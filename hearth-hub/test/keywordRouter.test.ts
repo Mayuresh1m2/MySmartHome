@@ -16,6 +16,8 @@ const cases: [string, string | null, Record<string, unknown>?][] = [
   ['unlock the front door', null],
   ['remove my downloads folder', null],
   ['tell me a joke', null],
+  ['format the disk', null],
+  ['buy more storage', null],
 ];
 
 describe('KeywordRouter', () => {

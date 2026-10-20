@@ -109,7 +109,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 ### Phase D — Local model (hearth-hub M3) — needs G2
 - [!] D1 Install Ollama, benchmark candidate models on this CPU, pick one, record in Environment
 - [x] D2 intent module (one call, tool calling, untrusted output), warm-up + keep-alive, latency metrics — code + mocked tests; real-model check waits for G2
-- [ ] D3 `pnpm eval` with ≥ 40 phrasings incl. must-refuse; target ≥ 90 %, all refusals, p95 < 4 s
+- [x] D3 `pnpm eval` with ≥ 40 phrasings incl. must-refuse; target ≥ 90 %, all refusals, p95 < 4 s — harness + 48 cases done; keyword baseline 83.3 %, 20/20; model run waits for G2
 
 ### Phase E — Devices platform skeleton (hearth-devices Phase 1) — local; Mosquitto needs G1
 - [x] E1 Python SDK (uv, aiomqtt, pydantic, ruff, pytest) + TS SDK (vitest): meta/state/result publishing, last will, schema validation against `contracts/local-devices/v0`

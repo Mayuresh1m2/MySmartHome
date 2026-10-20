@@ -20,3 +20,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 13 | [13-aws-hardening.md](13-aws-hardening.md) | H1 (+ handoff.sh) | done; runbook awaits review |
 | 14 | [14-skill-package.md](14-skill-package.md) | aws M3 (offline part) | done; privacy answers await review |
 | 15 | [15-hub-ollama-intent.md](15-hub-ollama-intent.md) | D2 | code done; real model waits for G2 |
+| 16 | [16-hub-eval-harness.md](16-hub-eval-harness.md) | D3 | harness done; model run waits for G2 |
