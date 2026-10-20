@@ -1,0 +1,16 @@
+[project]
+name = "hearth-devices-core"
+version = "0.1.0"
+description = "Hearth devices core: registry from adapter meta, risk-class policy, audit log and a command CLI"
+requires-python = ">=3.12"
+dependencies = ["hearth-devices-sdk", "aiomqtt>=2.5.1", "pydantic>=2.14.1", "pyyaml>=6.0"]
+
+[project.scripts]
+hearth-devices = "hearth_devices_core.cli:main"
+
+[tool.uv.sources]
+hearth-devices-sdk = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.10.11,<0.11.0"]
+build-backend = "uv_build"

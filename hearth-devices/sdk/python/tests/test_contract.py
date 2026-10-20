@@ -2,7 +2,6 @@ import json
 
 import jsonschema
 import pytest
-
 from hearth_devices_sdk.contract import DeviceMeta, Result, SetCommand, contracts_dir, state_payload, validate
 
 FIX = contracts_dir() / "fixtures"

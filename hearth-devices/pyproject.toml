@@ -1,0 +1,26 @@
+[project]
+name = "hearth-devices"
+version = "0.1.0"
+description = "Hearth devices workspace: adapter SDK, core (registry, policy, audit) and adapters"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv.workspace]
+members = ["sdk/python", "core", "adapters/*"]
+
+[tool.uv.sources]
+hearth-devices-sdk = { workspace = true }
+hearth-devices-core = { workspace = true }
+
+[dependency-groups]
+dev = ["pytest>=9.1.1", "pytest-asyncio>=1.4.0", "ruff>=0.17.1"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "RUF"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

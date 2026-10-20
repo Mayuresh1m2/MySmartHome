@@ -1,4 +1,4 @@
-"""JSON-lines logging so adapter logs can be merged with hub and broker logs by requestId."""
+"""JSON-lines logging (to stderr) so adapter logs can be merged with hub and broker logs by requestId."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ class JsonFormatter(logging.Formatter):
 def get_logger(svc: str, level: str = "INFO") -> logging.Logger:
     log = logging.getLogger(svc)
     if not log.handlers:
-        h = logging.StreamHandler(sys.stdout)
+        h = logging.StreamHandler(sys.stderr)  # stdout stays clean for CLI output
         h.setFormatter(JsonFormatter(svc))
         log.addHandler(h)
         log.propagate = False

@@ -17,7 +17,7 @@
     "local:logs": "tail -f local-stack/.state/logs/stack.log local-stack/.state/logs/hub.log",
     "hearth:trace": "bash scripts/trace.sh",
     "test:js": "pnpm -r --if-present test",
-    "test:py": "cd hearth-devices/sdk/python && uv run ruff check . && uv run pytest -q"
+    "test:py": "cd hearth-devices && uv run ruff check . && uv run pytest -q"
   },
   "devDependencies": {
     "tsx": "^4.23.15"

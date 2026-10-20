@@ -1,4 +1,4 @@
-"""Starts the local devices bus (local-stack/src/cli/bus.ts) for the test session and provides an observer."""
+"""Shared test fixtures for every hearth-devices package: the local devices bus and a core observer."""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from pathlib import Path
 import aiomqtt
 import pytest
 
-REPO = Path(__file__).resolve().parents[4]
-USERS = {"core": "c0re", "adapter-testkit": "t3st", "adapter-other": "0ther"}
+REPO = Path(__file__).resolve().parents[1]
+USERS = {"core": "c0re", "adapter-testkit": "t3st", "adapter-other": "0ther", "adapter-fake": "f4ke"}
 
 
 @pytest.fixture(scope="session")

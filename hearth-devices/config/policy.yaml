@@ -1,0 +1,10 @@
+# hearth-devices policy by risk class. High risk is disabled by default and never reachable by voice.
+version: 0
+defaults:
+  read: allow
+  low: allow
+  medium: allow   # also requires the device to be online and idle
+devices: {}
+#  example override, local only:
+#  fake-lock:
+#    DoorLock: allow

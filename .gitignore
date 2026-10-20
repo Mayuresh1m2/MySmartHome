@@ -30,3 +30,6 @@ local-stack/.state/
 
 # python
 *.egg-info/
+
+# hearth-devices audit
+hearth-devices/data/

@@ -6,10 +6,10 @@ import sys
 from pathlib import Path
 
 import pytest
-from conftest import USERS
+from hearth_devices_sdk import AdapterRunner, BusSettings, validate
 from testkit_adapter import TestkitAdapter
 
-from hearth_devices_sdk import AdapterRunner, BusSettings, validate
+from conftest import USERS
 
 LAMP = "hearth/local/devices/kit-lamp"
 
@@ -105,8 +105,9 @@ async def test_graceful_stop_publishes_offline(observer, bus_port):
     await asyncio.wait_for(runner.ready.wait(), 5)
     stop.set()
     await asyncio.wait_for(task, 5)
-    statuses = obs.payloads("hearth/local/adapters/testkit/status")
-    assert statuses[-1] == "offline"
+    # The broker acked our offline publish; delivery to the observer can still be in flight.
+    status = "hearth/local/adapters/testkit/status"
+    await obs.wait_for(status, lambda _: obs.payloads(status)[-1] == "offline")
 
 
 async def test_last_will_marks_adapter_offline_when_killed(observer, bus_port):
@@ -167,4 +168,4 @@ async def test_reconnects_and_reannounces_after_the_bus_drops_it(observer, bus_p
     await asyncio.wait_for(runner.ready.wait(), 5)
     stop.set()
     await asyncio.wait_for(task, 5)
-    assert obs.payloads(status)[-1] == "offline"
+    await obs.wait_for(status, lambda _: obs.payloads(status)[-1] == "offline")
