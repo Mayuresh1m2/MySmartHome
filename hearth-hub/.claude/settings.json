@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash(sudo *)",
+      "Bash(systemctl *)",
+      "Bash(launchctl *)",
+      "Bash(ollama pull *)"
+    ],
+    "deny": [
+      "Read(./certs/hub.key)"
+    ]
+  }
+}

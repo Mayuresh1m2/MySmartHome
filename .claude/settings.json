@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash(pnpm cdk deploy *)",
+      "Bash(npx cdk deploy *)",
+      "Bash(pnpm --filter * cdk deploy *)",
+      "Bash(ask deploy *)",
+      "Bash(sudo *)",
+      "Bash(systemctl *)",
+      "Bash(launchctl *)",
+      "Bash(ollama pull *)"
+    ],
+    "deny": [
+      "Bash(pnpm cdk destroy *)",
+      "Bash(npx cdk destroy *)",
+      "Bash(pnpm --filter * cdk destroy *)",
+      "Bash(aws iot delete-*)",
+      "Bash(aws iot update-certificate *)",
+      "Bash(aws dynamodb delete-table *)",
+      "Bash(ask smapi delete-skill *)",
+      "Bash(ask smapi submit-skill-for-certification *)",
+      "Read(./hearth-hub/certs/hub.key)",
+      "Read(**/certs/hub.key)"
+    ]
+  }
+}

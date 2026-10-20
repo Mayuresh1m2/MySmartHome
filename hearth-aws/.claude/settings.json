@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash(pnpm cdk deploy *)",
+      "Bash(npx cdk deploy *)",
+      "Bash(ask deploy *)"
+    ],
+    "deny": [
+      "Bash(pnpm cdk destroy *)",
+      "Bash(npx cdk destroy *)",
+      "Bash(aws iot delete-*)",
+      "Bash(aws iot update-certificate *)",
+      "Bash(aws dynamodb delete-table *)",
+      "Bash(ask smapi delete-skill *)",
+      "Bash(ask smapi submit-skill-for-certification *)"
+    ]
+  }
+}

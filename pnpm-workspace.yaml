@@ -1,0 +1,7 @@
+packages:
+  - hearth-aws
+  - hearth-aws/lambda/skill
+  - hearth-hub
+  - contracts
+  - local-stack
+  - hearth-devices/sdk/ts

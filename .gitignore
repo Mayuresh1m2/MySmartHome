@@ -1,0 +1,29 @@
+# deps / builds
+node_modules/
+dist/
+*.tsbuildinfo
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+coverage/
+
+# hearth-aws (per its CLAUDE.md)
+hearth-aws/config/local.json
+hearth-aws/out/
+hearth-aws/.ask/
+hearth-aws/cdk.out/
+
+# hearth-hub (per its CLAUDE.md)
+hearth-hub/config/hub.env
+hearth-hub/certs/
+hearth-hub/data/
+
+# hearth-devices
+hearth-devices/secrets/
+
+# local stack runtime state (local CA, broker certs, logs)
+local-stack/.state/
+
+# IDE
+.idea/workspace.xml
