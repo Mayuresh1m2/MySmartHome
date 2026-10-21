@@ -4,7 +4,9 @@ import type { HubConfig } from './config.js';
 import { JsonDeviceGateway } from './devices/jsonGateway.js';
 import { MqttDeviceGateway } from './devices/mqttGateway.js';
 import { KeywordRouter } from './intent/keywordRouter.js';
+import { GuardedIntent } from './intent/guardedIntent.js';
 import { OllamaIntent } from './intent/ollamaIntent.js';
+import { ThermalGuard } from './obs/thermal.js';
 import { Ollama } from 'ollama';
 import type { IntentEngine } from './intent/types.js';
 import type { Logger } from './obs/log.js';
@@ -40,9 +42,13 @@ export async function buildApp(
   const enabled = new Set(policy.enabledTools());
   const deviceTools = (await generateDeviceTools(devices)).filter((t) => enabled.has(t.name));
   const tools = toolMap([...allTools, ...deviceTools] as Tool[]);
-  const intent =
-    opts.intent ??
-    (config.INTENT === 'ollama'
+  const thermal = new ThermalGuard({
+    gpuMaxC: config.THERMAL_GPU_MAX_C,
+    cpuMaxC: config.THERMAL_CPU_MAX_C,
+    modelCallsPerMinute: config.MODEL_CALLS_PER_MINUTE,
+  });
+  const model =
+    config.INTENT === 'ollama'
       ? new OllamaIntent({
           client: new Ollama({ host: config.OLLAMA_HOST }),
           model: requireModel(config.OLLAMA_MODEL),
@@ -52,11 +58,12 @@ export async function buildApp(
           timeoutMs: config.INTENT_TIMEOUT_MS,
           numGpu: config.OLLAMA_NUM_GPU,
         })
-      : new KeywordRouter());
+      : undefined;
+  const intent = opts.intent ?? (model ? new GuardedIntent(model, new KeywordRouter(), thermal, log, metrics) : new KeywordRouter());
   const unknown = [...enabled].filter((n) => !tools.has(n));
   if (unknown.length) log.warn({ unknown }, 'policy.yaml enables tools that do not exist');
   const pipeline = createPipeline({ intent, policy, tools, audit, state, log, metrics, toolContext: { log, state, devices, fs: realFs } });
-  return { policy, state, audit, devices, tools, intent, pipeline };
+  return { policy, state, audit, devices, tools, intent, model, thermal, pipeline };
 }
 
 function requireModel(model: string): string {

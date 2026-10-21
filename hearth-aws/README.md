@@ -56,7 +56,7 @@ Edit `config/local.json`:
 | `iotEndpoint` | the output of the command above (`xxxx-ats.iot.eu-west-1.amazonaws.com`) |
 | `csrPath` | the absolute path printed by `make-csr.sh` |
 | `budgetEmail` | where budget and alarm emails go |
-| `replyTimeoutMs` | 3000 (never above 5000) |
+| `replyTimeoutMs` | 5000 when the hub uses a local model (it needs ~2.5–3.6 s); 3000 with the keyword router. Never above 5000 |
 | `locale` | `en-IN`, or your Echo's locale (see "Other locales") |
 | `skillId` | filled in at step 4; leave the placeholder for now |
 

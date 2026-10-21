@@ -121,6 +121,8 @@ export function createHubMetrics() {
     reconnects: registry.register(new Counter('hearth_hub_mqtt_reconnects_total', 'Reconnect attempts')),
     modelLoaded: registry.register(new Gauge('hearth_hub_model_loaded', '1 when the Ollama model is loaded')),
     lastCommandAt: registry.register(new Gauge('hearth_hub_last_command_timestamp_ms', 'Epoch ms of the last accepted command')),
+    intentFallbacks: registry.register(new Counter('hearth_hub_intent_fallback_total', 'Commands answered by the fallback router instead of the model, by reason (model_loading|gpu_hot|cpu_hot|rate|model_error)')),
+    temperatureC: registry.register(new Gauge('hearth_hub_temperature_celsius', 'Latest sensor reading by device (gpu|cpu)')),
   };
 }
 

@@ -82,7 +82,7 @@ describe('skill lambda', () => {
       Timeout: 7,
       MemorySize: 256,
       Environment: {
-        Variables: Match.objectLike({ HUB_ID: 'laptop', REPLY_TIMEOUT_MS: '3000', DEBUG_UTTERANCES: 'false', SKILL_ID: Match.stringLikeRegexp('^amzn1\\.ask\\.skill\\.') }),
+        Variables: Match.objectLike({ HUB_ID: 'laptop', REPLY_TIMEOUT_MS: '5000', DEBUG_UTTERANCES: 'false', SKILL_ID: Match.stringLikeRegexp('^amzn1\\.ask\\.skill\\.') }),
       },
     });
   });

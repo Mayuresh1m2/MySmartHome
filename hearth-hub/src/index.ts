@@ -3,7 +3,6 @@ import { loadConfig } from './config.js';
 import { startHealthServer } from './health/server.js';
 import { createLogger } from './obs/log.js';
 import { createHubMetrics } from './obs/metrics.js';
-import { OllamaIntent } from './intent/ollamaIntent.js';
 import { Relay } from './relay/relay.js';
 
 const config = loadConfig();
@@ -46,7 +45,7 @@ log.info(
 relay.start();
 
 // M3: warm the model up at startup and keep it loaded; re-check residency every minute for /health.
-const model = app.intent instanceof OllamaIntent ? app.intent : undefined;
+const model = app.model;
 if (model) {
   model.warmUp().catch((err: Error) => log.error({ stage: 'intent', err: err.message }, 'model warm-up failed'));
   setInterval(() => {
@@ -56,6 +55,16 @@ if (model) {
   }, 60_000).unref();
 }
 
+// Sample temperatures every 15 s for /health and /metrics (the guard also reads them per command).
+let lastTemps = await app.thermal.temps();
+setInterval(() => {
+  void app.thermal.temps().then((t) => {
+    lastTemps = t;
+    if (t.gpuC !== null) metrics.temperatureC.set(t.gpuC, { device: 'gpu' });
+    if (t.cpuC !== null) metrics.temperatureC.set(t.cpuC, { device: 'cpu' });
+  });
+}, 15_000).unref();
+
 const health = await startHealthServer({
   port: config.HEALTH_PORT,
   hubId: config.HUB_ID,
@@ -63,6 +72,7 @@ const health = await startHealthServer({
   snapshot: () => ({
     mqtt: relay.status,
     modelLoaded: model ? model.loaded : null,
+    thermal: { state: app.thermal.state, ...lastTemps },
     lastCommandAt: metrics.lastCommandAt.get() || null,
   }),
 });

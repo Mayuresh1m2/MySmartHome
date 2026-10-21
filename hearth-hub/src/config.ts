@@ -24,6 +24,10 @@ const Env = z.object({
   INTENT: z.enum(['keyword', 'ollama']).default('keyword'),
   /** Per-command model budget. Must stay below the Lambda's REPLY_TIMEOUT_MS minus publish time. */
   INTENT_TIMEOUT_MS: z.coerce.number().int().positive().max(4800).default(4000),
+  /** Thermal guard (progress/21): above these the hub stops using the model and falls back to the keyword router. */
+  THERMAL_GPU_MAX_C: z.coerce.number().positive().default(95),
+  THERMAL_CPU_MAX_C: z.coerce.number().positive().default(90),
+  MODEL_CALLS_PER_MINUTE: z.coerce.number().int().positive().default(12),
   HEALTH_PORT: z.coerce.number().int().nonnegative().default(8787),
   AUDIT_DIR: z.string().default(join(hubRoot, 'data', 'audit')),
   AUDIT_TEXT: z.stringbool().default(true),

@@ -11,7 +11,7 @@ Before choosing a model or a service manager, ask me which machine and OS the hu
 ## Environment
 
 - Machine, OS, RAM, GPU: this laptop (confirmed 2026-10-21), hubId `laptop`. Intel Core i7-5500U (2 cores / 4 threads), 15 GiB RAM, Intel HD 5500 plus a discrete AMD Radeon R9 M375 (4 GiB VRAM, GCN 1.0) that Ollama uses through Vulkan, Ubuntu 26.04.1 LTS x86_64.
-- Ollama version and chosen model: Ollama 0.40.6 (user install in ~/.local, `ollama serve` on 127.0.0.1:11434, not a system service). Model not chosen yet. qwen2.5:3b on the R9 M375: 93.8 % / 20 of 20 refused / p95 ≈ 3.9 s; on CPU it times out. qwen2.5:1.5b: p95 1.4 s on GPU, 2.8 s on CPU, but 73–77 % and 18 of 20. See progress/20.
+- Ollama version and chosen model: Ollama 0.40.6 (user install in ~/.local, `scripts/ollama.sh start`, 127.0.0.1:11434, not a system service). **Chosen 2026-10-21: qwen2.5:3b on the R9 M375 (Vulkan) behind the thermal guard**: 93.8 % accuracy, 20 of 20 refused, p50 ≈ 2.7 s, p95 ≈ 3.6 s, ~8.8 tok/s. Needs hearth-aws `replyTimeoutMs` 5000 and hub `INTENT_TIMEOUT_MS` 4300. Sustained load overheats this laptop (thermal power-off after ~16 min back to back), so the hub falls back to the keyword router at GPU ≥ 95 °C or CPU ≥ 90 °C, above 12 model calls a minute, while the model is loading, and on model errors (progress/21, 22).
 
 ## Contract with hearth-aws
 

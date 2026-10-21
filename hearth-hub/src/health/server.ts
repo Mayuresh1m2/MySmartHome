@@ -5,6 +5,7 @@ export interface HealthSnapshot {
   mqtt: { state: string; lastConnectedAt: number | null; lastError: string | null; reconnectAttempt: number };
   modelLoaded: boolean | null;
   lastCommandAt: number | null;
+  thermal?: { state: string; gpuC: number | null; cpuC: number | null };
 }
 
 export interface HealthOptions {

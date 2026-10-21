@@ -26,3 +26,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 19 | [19-local-contract-v1-hub-via-core.md](19-local-contract-v1-hub-via-core.md) | F2 | done |
 | 20 | [20-gpu-finding-and-model-comparison.md](20-gpu-finding-and-model-comparison.md) | D1 | GPU discovered; 3b-on-GPU best; reboot + soak test next |
 | 21 | [21-gpu-soak-thermal-shutdown.md](21-gpu-soak-thermal-shutdown.md) | D1 | GPU stable for 249 requests; laptop thermal shutdown; decision pending |
+| 22 | [22-thermal-guard.md](22-thermal-guard.md) | D1 decided (hub M3) | done |

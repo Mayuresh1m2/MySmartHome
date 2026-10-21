@@ -107,7 +107,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [x] C4 Local e2e test: request → hub → spoken reply; hub off → fallback; trace by `requestId`
 
 ### Phase D — Local model (hearth-hub M3) — needs G2
-- [~] D1 Install Ollama, benchmark models, pick one — 0.40.6 installed; R9 M375 GPU found (Vulkan). 3b/GPU 93.8 %, 20/20, p95 3.9 s; 1.5b fast but 73–77 %, 18/20. Next: reboot (GPU reset) + GPU soak test, then choose (progress/20)
+- [x] D1 Ollama 0.40.6 + qwen2.5:3b on R9 M375 (Vulkan) behind a thermal guard — 93.8 %, 20/20, p95 ≈ 3.6 s; needs replyTimeoutMs 5000 (progress/20–22)
 - [x] D2 intent module (one call, tool calling, untrusted output), warm-up + keep-alive, latency metrics — code + mocked tests; real-model check waits for G2
 - [x] D3 `pnpm eval` with ≥ 40 phrasings incl. must-refuse; target ≥ 90 %, all refusals, p95 < 4 s — harness + 48 cases done; keyword baseline 83.3 %, 20/20; model run waits for G2
 

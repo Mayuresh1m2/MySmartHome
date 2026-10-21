@@ -10,7 +10,6 @@ import { parseArgs } from 'node:util';
 import { buildApp } from '../../src/app.js';
 import { loadCases } from './run-cases.js';
 import { hubRoot, loadConfig } from '../../src/config.js';
-import { OllamaIntent } from '../../src/intent/ollamaIntent.js';
 import { createLogger } from '../../src/obs/log.js';
 import { createHubMetrics } from '../../src/obs/metrics.js';
 import { Policy } from '../../src/policy/policy.js';
@@ -29,9 +28,11 @@ process.env.IOT_ENDPOINT ??= 'unused';
 const config = loadConfig();
 const log = createLogger(process.env.LOG_LEVEL ?? 'warn');
 const app = await buildApp(config, log, createHubMetrics());
-if (app.intent instanceof OllamaIntent) {
+// The eval measures the model itself, not the thermal-guarded wrapper the service uses.
+const engine = app.model ?? app.intent;
+if (app.model) {
   const t0 = Date.now();
-  await app.intent.warmUp();
+  await app.model.warmUp();
   console.log(`warm-up ${Date.now() - t0} ms (excluded from latency)`);
 }
 
@@ -56,7 +57,7 @@ const rows: { text: string; expected: string; got: string; ok: boolean; ms: numb
 // Each row is appended as it completes, so an interrupted run (crash, power loss) still leaves its evidence.
 const resultsDir = join(hubRoot, 'test', 'evals', 'results');
 mkdirSync(resultsDir, { recursive: true });
-const runId = `${new Date().toISOString().replace(/[:.]/g, '-')}-${app.intent.name}${app.intent instanceof OllamaIntent ? `-${config.OLLAMA_MODEL.replace(/[^a-z0-9.]/gi, '_')}` : ''}`;
+const runId = `${new Date().toISOString().replace(/[:.]/g, '-')}-${engine.name}${app.model ? `-${config.OLLAMA_MODEL.replace(/[^a-z0-9.]/gi, '_')}` : ''}`;
 const partial = join(resultsDir, `${runId}.partial.jsonl`);
 const record = (row: (typeof rows)[number]) => {
   rows.push(row);
@@ -68,7 +69,7 @@ for (let r = 0; r < Number(flags.repeat); r++) {
     let got: string;
     let refused: boolean;
     try {
-      const d = await app.intent.decide(c.text);
+      const d = await engine.decide(c.text);
       if (d.kind === 'refuse') {
         got = 'refuse';
         refused = true;
@@ -97,8 +98,8 @@ for (let r = 0; r < Number(flags.repeat); r++) {
 const mustRefuse = rows.filter((r) => r.expected === 'refuse');
 const ms = rows.map((r) => r.ms);
 const summary = {
-  engine: app.intent.name,
-  model: app.intent instanceof OllamaIntent ? config.OLLAMA_MODEL : null,
+  engine: engine.name,
+  model: app.model ? config.OLLAMA_MODEL : null,
   at: new Date().toISOString(),
   cases: rows.length,
   accuracy: +(rows.filter((r) => r.ok).length / rows.length).toFixed(3),

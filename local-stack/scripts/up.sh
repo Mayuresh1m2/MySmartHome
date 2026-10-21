@@ -7,7 +7,9 @@ STACK="$ROOT/local-stack"
 STATE="$STACK/.state"
 HUB_ID="${HUB_ID:-laptop}"
 BROKER_PORT="${BROKER_PORT:-8884}" DDB_PORT="${DDB_PORT:-8885}" CONTROL_PORT="${CONTROL_PORT:-8886}" HEALTH_PORT="${HEALTH_PORT:-8787}"
-export HUB_ID BROKER_PORT DDB_PORT CONTROL_PORT
+# A local model needs the longer reply budget (contract max 5000).
+REPLY_TIMEOUT_MS="${REPLY_TIMEOUT_MS:-$([ "${INTENT:-keyword}" = ollama ] && echo 5000 || echo 3000)}"
+export HUB_ID BROKER_PORT DDB_PORT CONTROL_PORT REPLY_TIMEOUT_MS
 mkdir -p "$STATE/logs" "$STATE/pids" "$STATE/audit"
 
 running() { [ -f "$STATE/pids/$1" ] && kill -0 "$(cat "$STATE/pids/$1")" 2>/dev/null; }
@@ -32,6 +34,7 @@ AUDIT_DIR=$STATE/audit
 HEALTH_PORT=$HEALTH_PORT
 INTENT=${INTENT:-keyword}
 OLLAMA_MODEL=${OLLAMA_MODEL:-}
+INTENT_TIMEOUT_MS=${INTENT_TIMEOUT_MS:-4300}
 ENV
 
 wait_for() { # url, seconds
@@ -49,7 +52,7 @@ wait_for "http://127.0.0.1:$HEALTH_PORT/ready" 20 || { echo "hub not ready; see 
 cat > "$STATE/stack.json" <<JSON
 {"hubId":"$HUB_ID","ports":{"broker":$BROKER_PORT,"ddb":$DDB_PORT,"control":$CONTROL_PORT,"hubHealth":$HEALTH_PORT},"startedAt":"$(date -Is)"}
 JSON
-echo "Hearth local stack is up (hubId=$HUB_ID)"
+echo "Hearth local stack is up (hubId=$HUB_ID, intent=${INTENT:-keyword}${OLLAMA_MODEL:+ $OLLAMA_MODEL}, reply timeout ${REPLY_TIMEOUT_MS} ms)"
 echo "  broker   mqtts://localhost:$BROKER_PORT   (IoT Core emulator, mTLS)"
 echo "  dynamodb http://127.0.0.1:$DDB_PORT        (dynalite, table hearth-replies-local)"
 echo "  control  http://127.0.0.1:$CONTROL_PORT   (pnpm local:say \"...\")"

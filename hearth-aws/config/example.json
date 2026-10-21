@@ -3,7 +3,7 @@
   "skillId": "amzn1.ask.skill.00000000-0000-0000-0000-000000000000",
   "iotEndpoint": "xxxxxxxxxxxxxx-ats.iot.eu-west-1.amazonaws.com",
   "csrPath": "test/fixtures/example.csr",
-  "replyTimeoutMs": 3000,
+  "replyTimeoutMs": 5000,
   "budgetEmail": "you@example.com",
   "locale": "en-IN",
   "debugUtterances": false

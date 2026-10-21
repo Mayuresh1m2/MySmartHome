@@ -15,7 +15,7 @@ function withConfig(over: Record<string, unknown>) {
 describe('loadConfig', () => {
   it('loads example.json with defaults and the CSR', () => {
     const c = loadConfig(root, 'config/example.json');
-    expect(c).toMatchObject({ hubId: 'laptop', replyTimeoutMs: 3000, locale: 'en-IN' });
+    expect(c).toMatchObject({ hubId: 'laptop', replyTimeoutMs: 5000, locale: 'en-IN' });
     expect(c.csrPem).toContain('BEGIN CERTIFICATE REQUEST');
   });
   it('enforces the contract limits', () => {
