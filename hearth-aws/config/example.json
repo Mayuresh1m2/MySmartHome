@@ -7,6 +7,6 @@
   "budgetEmail": "you@example.com",
   "locale": "en-IN",
   "debugUtterances": false,
-  "killSwitchUsd": 1,
-  "budgetAlertUsd": 5
+  "hearthKillSwitchUsd": 1,
+  "accountKillSwitchUsd": 5
 }

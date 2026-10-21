@@ -21,10 +21,10 @@ The alarm emails go through an SNS email subscription. **AWS sends a confirmatio
 The symptom: Alexa always answers "Your home hub didn't answer in time", the hub is healthy, and an email from AWS Budgets says the action ran. The `KillSwitchDeny` policy is attached to the skill and rule roles.
 
 ```bash
-scripts/kill-switch.sh show          # limit + action status
-# find out why first: Cost Explorer, filter tag project=hearth, group by service
-scripts/kill-switch.sh set 3         # if the limit should simply be higher (then test → diff → deploy)
-scripts/kill-switch.sh reset         # ⚠ ask first: detaches the deny policy
+scripts/kill-switch.sh show                 # both limits + which action ran
+# find out why first: Cost Explorer (tag project=hearth for the Hearth switch, whole account for the other)
+scripts/kill-switch.sh set hearth 3         # or: set account 10, if a limit should simply be higher (then test → diff → deploy)
+scripts/kill-switch.sh reset hearth         # ⚠ ask first: detaches the deny policy (reset account for the other)
 ```
 
 It trips again within the same month if Hearth's cost is still above the limit.

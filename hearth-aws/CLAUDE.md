@@ -54,7 +54,7 @@ docs/runbook.md                   operations, including certificate rotation
 
 ## Config
 
-`config/local.json` holds `hubId`, `skillId`, `iotEndpoint`, `csrPath` (absolute path to the CSR that hearth-hub generated), `replyTimeoutMs`, `budgetEmail` and `locale` (default `en-IN`). Keep `config/example.json` in step with it. Optional: `debugUtterances` (default false, sets `DEBUG_UTTERANCES`), `certificates` (named list of CSRs for rotation; see `docs/runbook.md`), `killSwitchUsd` (default 1: Hearth's actual monthly cost at which AWS Budgets automatically stops the cloud side) and `budgetAlertUsd` (default 5: account-wide email alert). The two amounts can also be overridden per deploy with `-c killSwitchUsd=…`. Committed files contain no account IDs, skill IDs, endpoints or certificates.
+`config/local.json` holds `hubId`, `skillId`, `iotEndpoint`, `csrPath` (absolute path to the CSR that hearth-hub generated), `replyTimeoutMs`, `budgetEmail` and `locale` (default `en-IN`). Keep `config/example.json` in step with it. Optional: `debugUtterances` (default false, sets `DEBUG_UTTERANCES`), `certificates` (named list of CSRs for rotation; see `docs/runbook.md`), `hearthKillSwitchUsd` (default 1: Hearth's actual monthly cost) and `accountKillSwitchUsd` (default 5: the whole account's), at which automatic AWS Budgets actions deny Hearth's roles and stop the cloud side. Both can be overridden per deploy with `-c …`. Committed files contain no account IDs, skill IDs, endpoints or certificates.
 
 ## Resource rules
 
@@ -64,7 +64,7 @@ docs/runbook.md                   operations, including certificate rotation
 - Lambda: Node.js 22, 7 s timeout, 256 MB. Its role may only publish to the commands topic and read the replies table. Invoke permission goes to `alexa-appkit.amazon.com` with `eventSourceToken` set to the skill ID, and the handler uses `withSkillId`.
 - No API Gateway, no Lambda function URLs, no other public endpoints.
 - Logs: 14 day retention. Log `requestId`, latency and outcome. Log utterance text only when `DEBUG_UTTERANCES=true`.
-- An AWS Budget emails `budgetEmail` above $5 a month.
+- An AWS Budget emails `budgetEmail` above $5 a month (`accountKillSwitchUsd`, whole account), and a second, Hearth-only budget (tag `project=hearth`) watches `hearthKillSwitchUsd` ($1). At either limit an automatic budget action attaches a deny-all policy to the skill and rule roles, which stops Hearth's cloud side without deleting anything.
 
 ## Skill rules
 

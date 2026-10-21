@@ -20,16 +20,27 @@ describe('kill switch', () => {
   const res = t.toJSON().Resources as Record<string, { Type: string; Properties: Record<string, any> }>;
   const idOf = (type: string, pred: (p: Record<string, any>) => boolean = () => true) => Object.entries(res).find(([, r]) => r.Type === type && pred(r.Properties))![0];
 
-  it('a Hearth-only cost budget at killSwitchUsd (default $1)', () => {
+  it('a Hearth-only cost budget at hearthKillSwitchUsd (default $1)', () => {
     t.hasResourceProperties('AWS::Budgets::Budget', {
       Budget: { BudgetName: 'hearth-laptop-killswitch', BudgetType: 'COST', TimeUnit: 'MONTHLY', BudgetLimit: { Amount: 1, Unit: 'USD' }, CostFilters: { TagKeyValue: ['user:project$hearth'] } },
     });
   });
 
+  it('two automatic switches: Hearth-only and whole account, both on the same deny policy and roles', () => {
+    const actions = Object.values(res).filter((r) => r.Type === 'AWS::Budgets::BudgetsAction').map((r) => r.Properties);
+    expect(actions.map((a) => a.BudgetName).sort()).toEqual(['hearth-laptop-killswitch', 'hearth-laptop-monthly']);
+    for (const a of actions) {
+      expect(a).toMatchObject({ ActionType: 'APPLY_IAM_POLICY', ApprovalModel: 'AUTOMATIC', NotificationType: 'ACTUAL', ActionThreshold: { Type: 'PERCENTAGE', Value: 100 } });
+    }
+    expect(actions[0]!.Definition).toEqual(actions[1]!.Definition);
+    // the account budget counts everything (no tag filter)
+    t.hasResourceProperties('AWS::Budgets::Budget', { Budget: Match.objectLike({ BudgetName: 'hearth-laptop-monthly', CostFilters: Match.absent() }) });
+  });
+
   it('acts automatically on ACTUAL spend at 100 %, applying the deny policy to exactly the skill and rule roles', () => {
     const skillRole = res[Object.values(res).find((r) => r.Type === 'AWS::Lambda::Function')!.Properties.Role['Fn::GetAtt'][0]];
     expect(skillRole).toBeDefined();
-    const action = Object.values(res).find((r) => r.Type === 'AWS::Budgets::BudgetsAction')!.Properties;
+    const action = Object.values(res).find((r) => r.Type === 'AWS::Budgets::BudgetsAction' && r.Properties.BudgetName === 'hearth-laptop-killswitch')!.Properties;
     expect(action).toMatchObject({
       BudgetName: 'hearth-laptop-killswitch',
       ActionType: 'APPLY_IAM_POLICY',
@@ -63,26 +74,29 @@ describe('kill switch', () => {
 });
 
 describe('configurable amounts', () => {
-  it('killSwitchUsd and budgetAlertUsd flow into the budgets', () => {
-    const t = synth({ killSwitchUsd: 2.5, budgetAlertUsd: 10 });
+  it('hearthKillSwitchUsd and accountKillSwitchUsd flow into the budgets', () => {
+    const t = synth({ hearthKillSwitchUsd: 2.5, accountKillSwitchUsd: 10 });
     t.hasResourceProperties('AWS::Budgets::Budget', { Budget: Match.objectLike({ BudgetName: 'hearth-laptop-killswitch', BudgetLimit: { Amount: 2.5, Unit: 'USD' } }) });
     t.hasResourceProperties('AWS::Budgets::Budget', { Budget: Match.objectLike({ BudgetName: 'hearth-laptop-monthly', BudgetLimit: { Amount: 10, Unit: 'USD' } }) });
   });
 
   it('CDK context overrides are validated like the config file', () => {
-    expect(applyOverrides(base, { killSwitchUsd: 3 }).killSwitchUsd).toBe(3);
-    expect(() => applyOverrides(base, { killSwitchUsd: -1 })).toThrow(/Invalid override/);
-    expect(() => applyOverrides(base, { killSwitchUsd: 500 })).toThrow(/Invalid override/);
+    expect(applyOverrides(base, { hearthKillSwitchUsd: 3 }).hearthKillSwitchUsd).toBe(3);
+    expect(() => applyOverrides(base, { hearthKillSwitchUsd: -1 })).toThrow(/Invalid override/);
+    expect(() => applyOverrides(base, { hearthKillSwitchUsd: 500 })).toThrow(/Invalid override/);
   });
 
-  it('scripts/kill-switch.sh set updates config/local.json and rejects bad values', () => {
+  it('scripts/kill-switch.sh set hearth|account updates config/local.json and rejects bad values', () => {
     const dir = mkdtempSync(join(tmpdir(), 'hearth-ks-'));
     const cfg = join(dir, 'local.json');
-    writeFileSync(cfg, JSON.stringify({ hubId: 'laptop', killSwitchUsd: 1 }));
+    writeFileSync(cfg, JSON.stringify({ hubId: 'laptop', hearthKillSwitchUsd: 1, accountKillSwitchUsd: 5 }));
     const run = (...a: string[]) => spawnSync('bash', [join(projectRoot, 'scripts', 'kill-switch.sh'), ...a], { env: { ...process.env, HEARTH_CONFIG: cfg, PATH: '/usr/bin:/bin' }, encoding: 'utf8' });
-    expect(run('set', '2.5').status).toBe(0);
-    expect(JSON.parse(readFileSync(cfg, 'utf8')).killSwitchUsd).toBe(2.5);
-    for (const bad of ['0', '-1', 'abc', '1000']) expect(run('set', bad).status, bad).not.toBe(0);
-    expect(JSON.parse(readFileSync(cfg, 'utf8')).killSwitchUsd).toBe(2.5);
+    expect(run('set', 'hearth', '2.5').status).toBe(0);
+    expect(run('set', 'account', '20').status).toBe(0);
+    expect(JSON.parse(readFileSync(cfg, 'utf8'))).toMatchObject({ hearthKillSwitchUsd: 2.5, accountKillSwitchUsd: 20 });
+    for (const bad of ['0', '-1', 'abc', '1000']) expect(run('set', 'hearth', bad).status, bad).not.toBe(0);
+    expect(run('set', 'account', '5000').status).not.toBe(0);
+    expect(run('set', 'everything', '1').status).not.toBe(0);
+    expect(JSON.parse(readFileSync(cfg, 'utf8'))).toMatchObject({ hearthKillSwitchUsd: 2.5, accountKillSwitchUsd: 20 });
   });
 });

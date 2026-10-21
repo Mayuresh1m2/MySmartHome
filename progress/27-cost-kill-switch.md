@@ -44,3 +44,21 @@ template: 2 AWS::Budgets::Budget · 1 AWS::Budgets::BudgetsAction · 1 AWS::IAM:
 ## Testing it for real (after the first deploy, with your go-ahead)
 
 Spending real money to trip it isn't sensible. Instead: attach the deny policy by hand to the skill role, check that an ASK simulation gets the fallback, then detach it. That reproduces exactly what the action does. Watching the action fire for real would only happen in a month that actually exceeds the limit.
+
+## Follow-up: a second, account-wide switch, and clearer names
+
+You asked whether the switches are manual or automated Lambdas, and whether there's one for the whole account too.
+
+- **Automated, with no Lambda of ours.** They're AWS Budgets actions with `ApprovalModel: AUTOMATIC`, run by AWS. They attach the deny policy; they don't delete or stop the stack.
+- At first only the Hearth-only switch existed, and the account budget only sent email. **At your request, the account-wide budget now has the same automatic action**, still free (two action-enabled budgets).
+- A standalone account has no safe automatic way to stop *other* services: SCPs need AWS Organizations, and denying your own admin identity risks locking you out. So both switches stop **Hearth only**. For the rest of the account, the email and Free Tier alerts are the signal.
+- Renamed, since both amounts now stop Hearth (nothing deployed yet, so no migration): `killSwitchUsd` → **`hearthKillSwitchUsd`** (default 1), `budgetAlertUsd` → **`accountKillSwitchUsd`** (default 5). `scripts/kill-switch.sh show | set hearth|account <usd> | reset hearth|account`. The README "Cost guard" table, the runbook and the hearth-aws/CLAUDE.md Config line and resource rule are updated.
+
+```text
+$ pnpm --filter @hearth/aws test → Tests 42 passed (42)
+  ✓ two automatic switches: Hearth-only and whole account, both on the same deny policy and roles; account budget has no tag filter
+  ✓ kill-switch.sh set hearth 2.5 / set account 20 written; bad values, account 5000 and unknown switch rejected
+$ cdk synth -c accountKillSwitchUsd=12
+[{"BudgetName":"hearth-laptop-monthly","Amount":12},{"BudgetName":"hearth-laptop-killswitch","Amount":1}]
+["hearth-laptop-killswitch","hearth-laptop-monthly"]     ← one automatic action each
+```

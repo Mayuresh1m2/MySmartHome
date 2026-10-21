@@ -162,12 +162,12 @@ export class HearthStack extends Stack {
     });
     errors.addAlarmAction(new SnsAction(alerts));
 
-    new CfnBudget(this, 'MonthlyBudget', {
+    const accountBudget = new CfnBudget(this, 'MonthlyBudget', {
       budget: {
         budgetName: `hearth-${config.hubId}-monthly`,
         budgetType: 'COST',
         timeUnit: 'MONTHLY',
-        budgetLimit: { amount: config.budgetAlertUsd, unit: 'USD' },
+        budgetLimit: { amount: config.accountKillSwitchUsd, unit: 'USD' },
       },
       notificationsWithSubscribers: [
         {
@@ -177,7 +177,7 @@ export class HearthStack extends Stack {
       ],
     });
 
-    // ---- Kill switch: at killSwitchUsd of *actual* Hearth cost in a month, AWS Budgets automatically attaches a
+    // ---- Kill switch: at hearthKillSwitchUsd of *actual* Hearth cost in a month, AWS Budgets automatically attaches a
     // deny-all policy to the skill and rule roles. The Lambda can then neither publish commands nor read replies,
     // and the rule can't write, so the cloud side stops costing money. Undo: scripts/kill-switch.sh reset.
     const killPolicy = new ManagedPolicy(this, 'KillSwitchDeny', {
@@ -190,7 +190,7 @@ export class HearthStack extends Stack {
         budgetName: killBudgetName,
         budgetType: 'COST',
         timeUnit: 'MONTHLY',
-        budgetLimit: { amount: config.killSwitchUsd, unit: 'USD' },
+        budgetLimit: { amount: config.hearthKillSwitchUsd, unit: 'USD' },
         // Only Hearth's own costs, so other usage in the account can't switch Hearth off.
         // Requires the "project" cost allocation tag to be activated in the Billing console.
         costFilters: { TagKeyValue: ['user:project$hearth'] },
@@ -222,8 +222,21 @@ export class HearthStack extends Stack {
       subscribers: [{ type: 'EMAIL', address: config.budgetEmail }],
     });
     killAction.addResourceDependency(killBudget);
+    // Second switch: the whole account's actual cost (accountKillSwitchUsd). Same action, so it stops Hearth only.
+    const accountAction = new CfnBudgetsAction(this, 'AccountKillSwitchAction', {
+      budgetName: `hearth-${config.hubId}-monthly`,
+      actionType: 'APPLY_IAM_POLICY',
+      approvalModel: 'AUTOMATIC',
+      notificationType: 'ACTUAL',
+      actionThreshold: { type: 'PERCENTAGE', value: 100 },
+      definition: { iamActionDefinition: { policyArn: killPolicy.managedPolicyArn, roles: [role.roleName, ruleRole.roleName] } },
+      executionRoleArn: budgetsRole.roleArn,
+      subscribers: [{ type: 'EMAIL', address: config.budgetEmail }],
+    });
+    accountAction.addResourceDependency(accountBudget);
     new CfnOutput(this, 'KillSwitchBudgetName', { value: killBudgetName });
     new CfnOutput(this, 'KillSwitchActionId', { value: killAction.attrActionId });
+    new CfnOutput(this, 'AccountKillSwitchActionId', { value: accountAction.attrActionId });
 
     const emf = (metricName: string, outcome: string | undefined, statistic: string, label: string) =>
       new Metric({

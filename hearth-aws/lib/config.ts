@@ -14,9 +14,12 @@ export const HearthConfig = z.strictObject({
    * Kill switch: when Hearth's *actual* monthly cost (resources tagged project=hearth) reaches this many USD,
    * AWS Budgets automatically attaches a deny-all policy to the skill and rule roles, which stops the cloud side.
    */
-  killSwitchUsd: z.number().positive().max(100).default(1),
-  /** Email alert (no action) when the whole account's actual monthly cost passes this many USD. */
-  budgetAlertUsd: z.number().positive().max(1000).default(5),
+  hearthKillSwitchUsd: z.number().positive().max(100).default(1),
+  /**
+   * Account-wide kill switch: when the whole account's *actual* monthly cost reaches this many USD, the same
+   * deny policy is attached automatically (it stops Hearth only, not other services) and an email is sent.
+   */
+  accountKillSwitchUsd: z.number().positive().max(1000).default(5),
   /** Log utterance text in the skill's logs. Off by default. */
   debugUtterances: z.boolean().default(false),
   /**
@@ -63,8 +66,8 @@ export function loadConfig(projectRoot: string, file = process.env.HEARTH_CONFIG
 }
 
 /** Applies numeric overrides (e.g. from CDK context) with the same validation as the config file. */
-export function applyOverrides(config: HearthConfig, overrides: Partial<Pick<HearthConfig, 'killSwitchUsd' | 'budgetAlertUsd'>>): HearthConfig {
-  const limits = HearthConfig.pick({ killSwitchUsd: true, budgetAlertUsd: true }).partial().safeParse(overrides);
+export function applyOverrides(config: HearthConfig, overrides: Partial<Pick<HearthConfig, 'hearthKillSwitchUsd' | 'accountKillSwitchUsd'>>): HearthConfig {
+  const limits = HearthConfig.pick({ hearthKillSwitchUsd: true, accountKillSwitchUsd: true }).partial().safeParse(overrides);
   if (!limits.success) throw new Error(`Invalid override:\n${z.prettifyError(limits.error)}`);
   return { ...config, ...limits.data };
 }

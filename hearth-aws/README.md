@@ -28,20 +28,22 @@ Typically cents a month: on-demand DynamoDB, a few Lambda invocations, IoT messa
 
 Everything runs in **eu-west-1** (fixed by the hub contract).
 
-## Cost guard (kill switch)
+## Cost guard (kill switches)
 
-Two budgets come with the stack:
+Two **automatic** AWS Budgets actions. AWS runs them itself; no code of ours is involved. Each attaches a deny-all policy to the skill and rule roles when *actual* monthly cost reaches its limit: the cloud side stops, Alexa answers "your home hub didn't answer", and you get an email. Nothing is deleted, and the stack stays as it is.
 
-| Budget | Counts | At | Does |
+| Switch | Budget | Counts | Limit (config) |
 |---|---|---|---|
-| `hearth-<hubId>-killswitch` | Hearth's costs only (tag `project=hearth`) | `killSwitchUsd` (default **$1**) actual | **automatically** attaches a deny-all policy to the skill and rule roles: the cloud side stops, Alexa answers "your home hub didn't answer", and you get an email |
-| `hearth-<hubId>-monthly` | the whole account | `budgetAlertUsd` (default $5) actual | email only |
+| Hearth | `hearth-<hubId>-killswitch` | Hearth's costs only (tag `project=hearth`) | `hearthKillSwitchUsd`, default **$1** |
+| Account | `hearth-<hubId>-monthly` | the whole account | `accountKillSwitchUsd`, default **$5** |
 
-- Change the limit: `scripts/kill-switch.sh set 2`, then test → diff → deploy (an in-place budget update), or for one deploy only: `pnpm cdk deploy -c killSwitchUsd=2`.
-- **One-time setup:** in the Billing console, activate the **`project` cost allocation tag** (Billing → Cost allocation tags). Until then the Hearth-only budget sees $0, and only the account-wide alert works. Activation can take up to 24 hours.
-- Also turn on Billing preferences → **Free Tier usage alerts** (free): you're emailed at 85 % of any free-tier limit, before anything is switched off.
-- It's not a hard cap: billing data lags by hours, so spend can pass the limit a little before the switch acts.
-- After it trips: `scripts/kill-switch.sh reset` reverses it. It trips again if this month's cost is still over the limit; raise the limit first with `set`.
+Both stop **Hearth only**. A standalone account has no safe automatic way to stop *other* services (that needs AWS Organizations SCPs), so for the rest of the account the email and Free Tier alerts are your signal.
+
+- Change a limit: `scripts/kill-switch.sh set hearth 2` or `set account 10`, then test → diff → deploy (an in-place update). For one deploy only: `pnpm cdk deploy -c hearthKillSwitchUsd=2 -c accountKillSwitchUsd=10`.
+- **One-time setup:** in Billing → Cost allocation tags, activate **`project`**. Until then the Hearth switch sees $0 (the account switch works regardless). Activation can take up to 24 hours.
+- Also turn on Billing preferences → **Free Tier usage alerts** (free): an email at 85 % of any free-tier limit.
+- It's not a hard cap: billing data lags by hours, so spend can pass a limit a little before a switch acts.
+- After a trip: `scripts/kill-switch.sh show`, then `reset hearth` or `reset account`. A switch trips again if this month's cost is still over its limit, so raise the limit first with `set`.
 
 ## 1. Create the hub's identity (on the hub machine)
 
@@ -71,7 +73,7 @@ Edit `config/local.json`:
 | `iotEndpoint` | the output of the command above (`xxxx-ats.iot.eu-west-1.amazonaws.com`) |
 | `csrPath` | the absolute path printed by `make-csr.sh` |
 | `budgetEmail` | where budget, kill-switch and alarm emails go |
-| `killSwitchUsd` / `budgetAlertUsd` | cost guard amounts, default 1 and 5 (see Cost guard) |
+| `hearthKillSwitchUsd` / `accountKillSwitchUsd` | kill-switch limits, default 1 and 5 (see Cost guard) |
 | `replyTimeoutMs` | 5000 when the hub uses a local model (it needs ~2.5–3.6 s); 3000 with the keyword router. Never above 5000 |
 | `locale` | `en-IN`, or your Echo's locale (see "Other locales") |
 | `skillId` | filled in at step 4; leave the placeholder for now |
