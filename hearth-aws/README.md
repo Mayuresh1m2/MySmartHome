@@ -34,13 +34,13 @@ Two **automatic** AWS Budgets actions. AWS runs them itself; no code of ours is 
 
 | Switch | Budget | Counts | Limit (config) |
 |---|---|---|---|
-| Hearth | `hearth-<hubId>-killswitch` | Hearth's costs only (tag `project=hearth`) | `hearthKillSwitchUsd`, default **$1** |
+| Hearth | `hearth-<hubId>-killswitch` | the whole account | `hearthKillSwitchUsd`, default **$1** |
 | Account | `hearth-<hubId>-monthly` | the whole account | `accountKillSwitchUsd`, default **$5** |
 
 Both stop **Hearth only**. A standalone account has no safe automatic way to stop *other* services (that needs AWS Organizations SCPs), so for the rest of the account the email and Free Tier alerts are your signal.
 
 - Change a limit: `scripts/kill-switch.sh set hearth 2` or `set account 10`, then test → diff → deploy (an in-place update). For one deploy only: `pnpm cdk deploy -c hearthKillSwitchUsd=2 -c accountKillSwitchUsd=10`.
-- **One-time setup:** in Billing → Cost allocation tags, activate **`project`**. Until then the Hearth switch sees $0 (the account switch works regardless). Activation can take up to 24 hours.
+- **Why both count the whole account:** a Hearth-only budget would filter on the `project=hearth` tag, but only a management account or a standalone account can activate cost allocation tags. New sign-up experience accounts are members of an AWS-managed organization ("Linked account doesn't have access to cost allocation tags"), so a tag filter would always see $0. So other projects in the account count towards the $1 limit too: raise it with `set hearth` when you add some.
 - Also turn on Billing preferences → **Free Tier usage alerts** (free): an email at 85 % of any free-tier limit.
 - It's not a hard cap: billing data lags by hours, so spend can pass a limit a little before a switch acts.
 - After a trip: `scripts/kill-switch.sh show`, then `reset hearth` or `reset account`. A switch trips again if this month's cost is still over its limit, so raise the limit first with `set`.

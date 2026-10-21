@@ -14,8 +14,9 @@ export const HearthConfig = z.strictObject({
   budgetEmail: z.email(),
   locale: z.string().default('en-IN'),
   /**
-   * Kill switch: when Hearth's *actual* monthly cost (resources tagged project=hearth) reaches this many USD,
-   * AWS Budgets automatically attaches a deny-all policy to the skill and rule roles, which stops the cloud side.
+   * Kill switch: when the whole account's *actual* monthly cost reaches this many USD (no tag filter: member accounts
+   * can't activate cost allocation tags), AWS Budgets automatically attaches a deny-all policy to the skill and rule
+   * roles, which stops the cloud side.
    */
   hearthKillSwitchUsd: z.number().positive().max(100).default(1),
   /**

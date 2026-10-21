@@ -22,7 +22,7 @@ The symptom: Alexa always answers "Your home hub didn't answer in time", the hub
 
 ```bash
 scripts/kill-switch.sh show                 # both limits + which action ran
-# find out why first: Cost Explorer (tag project=hearth for the Hearth switch, whole account for the other)
+# find out why first: Cost Explorer, grouped by service (both switches count the whole account)
 scripts/kill-switch.sh set hearth 3         # or: set account 10, if a limit should simply be higher (then test → diff → deploy)
 scripts/kill-switch.sh reset hearth         # ⚠ ask first: detaches the deny policy (reset account for the other)
 ```

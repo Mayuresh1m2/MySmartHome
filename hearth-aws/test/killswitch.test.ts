@@ -20,13 +20,13 @@ describe('kill switch', () => {
   const res = t.toJSON().Resources as Record<string, { Type: string; Properties: Record<string, any> }>;
   const idOf = (type: string, pred: (p: Record<string, any>) => boolean = () => true) => Object.entries(res).find(([, r]) => r.Type === type && pred(r.Properties))![0];
 
-  it('a Hearth-only cost budget at hearthKillSwitchUsd (default $1)', () => {
+  it('an unfiltered (whole account) cost budget at hearthKillSwitchUsd (default $1)', () => {
     t.hasResourceProperties('AWS::Budgets::Budget', {
-      Budget: { BudgetName: 'hearth-laptop-killswitch', BudgetType: 'COST', TimeUnit: 'MONTHLY', BudgetLimit: { Amount: 1, Unit: 'USD' }, CostFilters: { TagKeyValue: ['user:project$hearth'] } },
+      Budget: { BudgetName: 'hearth-laptop-killswitch', BudgetType: 'COST', TimeUnit: 'MONTHLY', BudgetLimit: { Amount: 1, Unit: 'USD' }, CostFilters: Match.absent() },
     });
   });
 
-  it('two automatic switches: Hearth-only and whole account, both on the same deny policy and roles', () => {
+  it('two automatic switches ($1 and $5), both on the same deny policy and roles', () => {
     const actions = Object.values(res).filter((r) => r.Type === 'AWS::Budgets::BudgetsAction').map((r) => r.Properties);
     expect(actions.map((a) => a.BudgetName).sort()).toEqual(['hearth-laptop-killswitch', 'hearth-laptop-monthly']);
     for (const a of actions) {
@@ -67,7 +67,7 @@ describe('kill switch', () => {
     expect(statement.Resource).toHaveLength(2);
   });
 
-  it('every resource is tagged project=hearth (what the cost filter counts)', () => {
+  it('every resource is tagged project=hearth (Tag Editor, Cost Explorer)', () => {
     t.hasResourceProperties('AWS::Lambda::Function', { Tags: Match.arrayWith([{ Key: 'project', Value: 'hearth' }]) });
     t.hasResourceProperties('AWS::DynamoDB::Table', { Tags: Match.arrayWith([{ Key: 'project', Value: 'hearth' }]) });
   });

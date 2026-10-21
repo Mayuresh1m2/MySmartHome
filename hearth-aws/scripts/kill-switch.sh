@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Hearth kill switches: AWS Budgets actions (automatic, no code of ours) that attach a deny-all policy to the
 # skill and rule roles when actual monthly cost reaches a limit. Two of them:
-#   hearth   Hearth's own costs (tag project=hearth)   .env: HEARTH_KILL_SWITCH_USD          (default 1)
-#   account  the whole account's costs                  .env: HEARTH_ACCOUNT_KILL_SWITCH_USD  (default 5)
+#   hearth   the whole account's costs (no tag filter)   .env: HEARTH_KILL_SWITCH_USD          (default 1)
+#   account  the whole account's costs                    .env: HEARTH_ACCOUNT_KILL_SWITCH_USD  (default 5)
 # Both stop Hearth only; neither deletes anything.
 #
 #   scripts/kill-switch.sh show                    limits in .env + the deployed actions' state

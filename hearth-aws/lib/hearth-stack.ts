@@ -24,7 +24,8 @@ export class HearthStack extends Stack {
   constructor(scope: Construct, id: string, props: HearthStackProps) {
     super(scope, id, props);
     const { config } = props;
-    // Cost allocation: the kill-switch budget counts only resources carrying this tag.
+    // Groups Hearth's resources in Tag Editor and Cost Explorer. The kill-switch budgets don't filter on it:
+    // member accounts of an AWS-managed organization (the new sign-up experience) can't activate cost allocation tags.
     Tags.of(this).add('project', 'hearth');
     const name = `hearth-${config.hubId}`;
     const commandsTopic = `hearth/${config.hubId}/commands`;
@@ -192,9 +193,8 @@ export class HearthStack extends Stack {
         budgetType: 'COST',
         timeUnit: 'MONTHLY',
         budgetLimit: { amount: config.hearthKillSwitchUsd, unit: 'USD' },
-        // Only Hearth's own costs, so other usage in the account can't switch Hearth off.
-        // Requires the "project" cost allocation tag to be activated in the Billing console.
-        costFilters: { TagKeyValue: ['user:project$hearth'] },
+        // The whole account's cost, unfiltered. A project=hearth tag filter would see $0 here: only a management or
+        // standalone account can activate cost allocation tags. Other projects' spend counts towards it too.
       },
     });
     const budgetsRole = new Role(this, 'KillSwitchExecutionRole', {

@@ -54,7 +54,7 @@ docs/runbook.md                   operations, including certificate rotation
 
 ## Config
 
-Per-person values live in the repo-root `.env` (gitignored; template `.env.example`), read by `lib/config.ts` and the scripts, with real environment variables taking precedence: `HEARTH_HUB_ID`, `HEARTH_AWS_REGION`, `HEARTH_SKILL_ID`, `HEARTH_IOT_ENDPOINT` (filled in by `scripts/configure.sh`), `HEARTH_CSR_PATH` (default `hearth-hub/certs/hub.csr`), `HEARTH_REPLY_TIMEOUT_MS`, `HEARTH_ALERT_EMAIL`, `HEARTH_LOCALE` (default `en-IN`), `HEARTH_KILL_SWITCH_USD` (default 1: Hearth's actual monthly cost) and `HEARTH_ACCOUNT_KILL_SWITCH_USD` (default 5: the whole account's), at which automatic AWS Budgets actions deny Hearth's roles and stop the cloud side, `HEARTH_DEBUG_UTTERANCES` and `HEARTH_CERTIFICATES` (JSON list for rotation; see `docs/runbook.md`). The two amounts can also be overridden per deploy with `-c hearthKillSwitchUsd=…`. Keep `.env.example` in step. Committed files contain no account IDs, skill IDs, endpoints or certificates.
+Per-person values live in the repo-root `.env` (gitignored; template `.env.example`), read by `lib/config.ts` and the scripts, with real environment variables taking precedence: `HEARTH_HUB_ID`, `HEARTH_AWS_REGION`, `HEARTH_SKILL_ID`, `HEARTH_IOT_ENDPOINT` (filled in by `scripts/configure.sh`), `HEARTH_CSR_PATH` (default `hearth-hub/certs/hub.csr`), `HEARTH_REPLY_TIMEOUT_MS`, `HEARTH_ALERT_EMAIL`, `HEARTH_LOCALE` (default `en-IN`), `HEARTH_KILL_SWITCH_USD` (default 1) and `HEARTH_ACCOUNT_KILL_SWITCH_USD` (default 5: the whole account's), at which automatic AWS Budgets actions deny Hearth's roles and stop the cloud side, `HEARTH_DEBUG_UTTERANCES` and `HEARTH_CERTIFICATES` (JSON list for rotation; see `docs/runbook.md`). The two amounts can also be overridden per deploy with `-c hearthKillSwitchUsd=…`. Keep `.env.example` in step. Committed files contain no account IDs, skill IDs, endpoints or certificates.
 
 ## Resource rules
 
@@ -64,7 +64,7 @@ Per-person values live in the repo-root `.env` (gitignored; template `.env.examp
 - Lambda: Node.js 22, 7 s timeout, 256 MB. Its role may only publish to the commands topic and read the replies table. Invoke permission goes to `alexa-appkit.amazon.com` with `eventSourceToken` set to the skill ID, and the handler uses `withSkillId`.
 - No API Gateway, no Lambda function URLs, no other public endpoints.
 - Logs: 14 day retention. Log `requestId`, latency and outcome. Log utterance text only when `DEBUG_UTTERANCES=true`.
-- An AWS Budget emails `budgetEmail` above $5 a month (`accountKillSwitchUsd`, whole account), and a second, Hearth-only budget (tag `project=hearth`) watches `hearthKillSwitchUsd` ($1). At either limit an automatic budget action attaches a deny-all policy to the skill and rule roles, which stops Hearth's cloud side without deleting anything.
+- An AWS Budget emails `budgetEmail` above $5 a month (`accountKillSwitchUsd`, whole account), and a second budget watches `hearthKillSwitchUsd` ($1), also for the whole account: member accounts of an AWS-managed organization can't activate cost allocation tags, so a `project=hearth` filter would always see $0. At either limit an automatic budget action attaches a deny-all policy to the skill and rule roles, which stops Hearth's cloud side without deleting anything.
 
 ## Skill rules
 
