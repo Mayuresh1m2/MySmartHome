@@ -41,3 +41,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 34 | [34-killswitch-whole-account.md](34-killswitch-whole-account.md) | cost guard | done |
 | 35 | [35-stop-start.md](35-stop-start.md) | laptop footprint, off switch | done; suspend/resume untested |
 | 36 | [36-publish-prep.md](36-publish-prep.md) | publishing | done |
+| 37 | [37-published.md](37-published.md) | public repo | done |
