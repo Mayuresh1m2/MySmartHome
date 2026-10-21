@@ -77,3 +77,14 @@ simulate "open ramesh dude"                       → LaunchRequest → "Hearth 
 ```
 
 The deploy you stopped (help sentence only) is still pending; it now carries "ramesh dude".
+
+## "ramesh dude" works on the Echo, and the help sentence is deployed
+
+```text
+Echo (CloudWatch "command relayed"): 16:05:10 ok 2453 ms · 16:05:37 ok 2640 ms · 16:06:07 ok 2137 ms
+cdk diff → only AWS::Lambda::Function SkillFunction Code (S3Key) · cdk deploy (approved) → ✅ Hearth-laptop, 26.44 s
+simulate "open ramesh dude" → LaunchRequest · "help" (same session) → AMAZON.HelpIntent:
+  "I pass what you say to your home hub and read back its answer. Try: ask ramesh dude how much space is left."
+```
+
+Note: a one-shot "ask ramesh dude for help" goes to `CommandIntent` (the free-form `{command}` slot takes "for help") and the hub refuses it. Built-in Help works inside a session (open → "help"). That's expected with a catch-all slot, so I left it as is.
