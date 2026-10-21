@@ -122,7 +122,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [x] F2 MQTT gateway via devices core (local contract v1: registry snapshot + request/response; hub = voice) — cross-language integration test green
 
 ### Phase G — Go to the cloud — needs G3/G4/G9
-- [!] G1' AWS CLI + profile, `cdk bootstrap`; `config/local.json`
+- [~] G1' AWS CLI + profile (`aws login`), `.env`, then `cdk bootstrap`
 - [!] G2' aws M2: test → synth → diff → **ask** → deploy; `aws iot-data publish` fake reply → item in table; `scripts/handoff.sh` → `out/hub.crt`, `out/hub.env`
 - [!] G3' hub M1 real: hub connects to IoT Core; fake command → reply item; Wi-Fi off/on → reconnect (user performs)
 - [!] G4' aws M3: ASK CLI skill create → save ID → deploy → set endpoint → enable dev testing; simulate "ask home hearth to ping" with hub off (fallback) and on (reply)

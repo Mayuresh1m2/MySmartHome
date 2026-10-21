@@ -6,7 +6,8 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 UNITS="$HOME/.config/systemd/user"
-MODEL="${OLLAMA_MODEL:-qwen2.5:3b}"
+. "$ROOT/scripts/env.sh"; hearth_load_env 2>/dev/null || true
+MODEL="${OLLAMA_MODEL:-${HEARTH_OLLAMA_MODEL:-qwen2.5:3b}}"
 ALL=(hearth-ollama hearth-local-iot hearth-local-stack hearth-hub)
 sc() { systemctl --user "$@"; }
 

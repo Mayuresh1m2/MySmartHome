@@ -57,7 +57,7 @@ fi
 [ -e "$ROOT/hearth-hub/config/hub.env" ] && pass "config/hub.env present" || note "config/hub.env absent"
 
 echo "hearth-aws config"
-[ -e "$ROOT/hearth-aws/config/local.json" ] && pass "config/local.json present" || note "config/local.json absent"
+[ -e "$ROOT/.env" ] && pass ".env present (per-person settings)" || note ".env absent: cp .env.example .env, then scripts/configure.sh"
 [ -e "$ROOT/hearth-aws/out/hub.crt" ] && pass "out/hub.crt present (handoff done)" || note "out/hub.crt absent (handoff not run)"
 
 echo "Running services"

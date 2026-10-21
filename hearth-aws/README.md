@@ -19,14 +19,14 @@ Typically cents a month: on-demand DynamoDB, a few Lambda invocations, IoT messa
 | | |
 |---|---|
 | AWS account | an IAM identity able to deploy CloudFormation, IoT, Lambda, DynamoDB, IAM roles, SNS, CloudWatch and Budgets |
-| AWS CLI v2 | signed in with a profile. New-experience accounts: `aws login --profile hearth --region ap-southeast-2` (temporary credentials from your console login, auto-refreshed). Classic accounts: `aws configure sso` or `aws configure`. Credentials stay in the CLI; nothing here writes them to files |
+| AWS CLI v2 | signed in with a profile. New-experience accounts: `aws login --profile hearth --region "$HEARTH_AWS_REGION"` (temporary credentials from your console login, auto-refreshed). Classic accounts: `aws configure sso` or `aws configure`. Credentials stay in the CLI; nothing here writes them to files |
 | Amazon developer account | the same Amazon account your Echo uses, so the development skill shows up on your devices |
 | ASK CLI v2 | `npm i -g ask-cli`, then `ask configure`. **Check `ask --help` for exact syntax.** The commands below were written before they could be run here, and are confirmed at milestone M3 |
 | Node.js 22, pnpm | `corepack enable pnpm` |
 | openssl, jq | for the hub's key/CSR and the handoff script |
 | Your Echo's language | the skill locale must match it. This repo ships **en-IN** |
 
-Everything runs in **ap-southeast-2 (Sydney)**, fixed by the hub contract. Why Sydney: accounts created through AWS's new sign-up experience get one region from the contact address, and **India maps to ap-southeast-2**, with no region selector ([AWS Regions for your projects](https://docs.aws.amazon.com/accounts/latest/reference/project-regions.html)). Amazon recommends eu-west-1 for Alexa EU/IN skills because Alexa serves those locales from Ireland. Sydney adds roughly 0.25 s per command, well inside the reply budget. With a classic account (or after activating advanced features) you could move back: change the contract region in both CLAUDE.md files, `contracts/cloud-hub/v1/constants.json` and here, together.
+Everything runs in **one AWS Region you choose in `.env` (`HEARTH_AWS_REGION`)**; the handoff carries it to the hub. Accounts created through AWS's new sign-up experience get one region from the contact address with no region selector (India → ap-southeast-2, US → us-east-2, Europe → eu-north-1; see [AWS Regions for your projects](https://docs.aws.amazon.com/accounts/latest/reference/project-regions.html)). Amazon recommends eu-west-1 / us-east-1 / us-west-2 for Alexa skills by Alexa region, but any Lambda region works; a farther region adds a few hundred ms per command, inside the reply budget.
 
 ## Cost guard (kill switches)
 
@@ -56,38 +56,40 @@ scripts/make-csr.sh --hub-id laptop       # pick your hubId: lowercase letters, 
 # → prints the absolute CSR path for the next step
 ```
 
-## 2. Configure this project
+## 2. Configure your details (one `.env` at the repo root)
+
+Every per-person value lives in one gitignored file, so nobody's details are in the code:
 
 ```bash
-cd hearth-aws
-pnpm install
-cp config/example.json config/local.json      # gitignored
-aws iot describe-endpoint --endpoint-type iot:Data-ATS --region ap-southeast-2 --query endpointAddress --output text
+cd <repo root>
+cp .env.example .env          # gitignored
+$EDITOR .env                  # set HEARTH_ALERT_EMAIL, AWS_PROFILE, HEARTH_AWS_REGION, HEARTH_LOCALE, HEARTH_HUB_ID
+scripts/configure.sh          # fills HEARTH_IOT_ENDPOINT from your AWS profile and reports anything missing
 ```
 
-Edit `config/local.json`:
-
-| key | value |
+| Variable | Value |
 |---|---|
-| `hubId` | the same id as step 1 |
-| `iotEndpoint` | the output of the command above (`xxxx-ats.iot.ap-southeast-2.amazonaws.com`) |
-| `csrPath` | the absolute path printed by `make-csr.sh` |
-| `budgetEmail` | where budget, kill-switch and alarm emails go |
-| `hearthKillSwitchUsd` / `accountKillSwitchUsd` | kill-switch limits, default 1 and 5 (see Cost guard) |
-| `replyTimeoutMs` | 5000 when the hub uses a local model (it needs ~2.5–3.6 s); 3000 with the keyword router. Never above 5000 |
-| `locale` | `en-IN`, or your Echo's locale (see "Other locales") |
-| `skillId` | filled in at step 4; leave the placeholder for now |
+| `HEARTH_ALERT_EMAIL` | where kill-switch, budget and alarm emails go |
+| `AWS_PROFILE` | your AWS CLI profile (`aws login --profile hearth`, `aws configure sso` or `aws configure`) |
+| `HEARTH_AWS_REGION` | where the AWS side lives. New sign-up experience: settings.aws.com → Project → Region (India → ap-southeast-2, US → us-east-2, Europe → eu-north-1). Classic accounts: your choice |
+| `HEARTH_IOT_ENDPOINT` | filled in by `scripts/configure.sh` |
+| `HEARTH_SKILL_ID` | set in step 4 |
+| `HEARTH_LOCALE` | your Echo's language, e.g. `en-IN` (see "Other locales") |
+| `HEARTH_HUB_ID` | the same id as step 1 |
+| `HEARTH_REPLY_TIMEOUT_MS` | 5000 when the hub uses a local model (~2.5–3.6 s); 3000 with the keyword router; never above 5000 |
+| `HEARTH_KILL_SWITCH_USD` / `HEARTH_ACCOUNT_KILL_SWITCH_USD` | kill-switch limits, default 1 and 5 (see Cost guard) |
+| `HEARTH_CSR_PATH` | only if the hub CSR isn't at `hearth-hub/certs/hub.csr` |
 
-Check it:
+Real environment variables override `.env` (handy in CI). Then:
 
 ```bash
-pnpm test && pnpm cdk synth
+cd hearth-aws && pnpm install && pnpm test
 ```
 
 ## 3. Bootstrap CDK (once per account and region)
 
 ```bash
-pnpm cdk bootstrap aws://<account-id>/ap-southeast-2
+pnpm cdk bootstrap aws://<account-id>/<HEARTH_AWS_REGION>
 ```
 
 ## 4. Create the skill first, so its ID exists
@@ -101,11 +103,11 @@ ask smapi create-skill-for-vendor --manifest "file:skill-package/skill.json"
 ask smapi get-skill-status --skill-id <skillId>
 
 # upload the interaction model
-ask smapi set-interaction-model --skill-id <skillId> --stage development --locale en-IN \
+ask smapi set-interaction-model --skill-id <skillId> --stage development --locale "$HEARTH_LOCALE" \
   --interaction-model "file:skill-package/interactionModels/custom/en-IN.json"
 ```
 
-Put the skillId into `config/local.json` as `skillId`.
+Put the skill ID into `.env` as `HEARTH_SKILL_ID`, then check everything with `scripts/configure.sh` and `pnpm cdk synth`.
 
 ## 5. Deploy
 
@@ -121,9 +123,9 @@ Afterwards:
 - Optional check of the replies path:
 
   ```bash
-  aws iot-data publish --region ap-southeast-2 --topic "hearth/<hubId>/replies" --cli-binary-format raw-in-base64-out \
+  aws iot-data publish --region "$HEARTH_AWS_REGION" --topic "hearth/<hubId>/replies" --cli-binary-format raw-in-base64-out \
     --payload '{"v":1,"requestId":"00000000-0000-4000-8000-000000000000","speech":"test","status":"ok"}'
-  aws dynamodb get-item --region ap-southeast-2 --table-name <RepliesTableName output> \
+  aws dynamodb get-item --region "$HEARTH_AWS_REGION" --table-name <RepliesTableName output> \
     --key '{"requestId":{"S":"00000000-0000-4000-8000-000000000000"}}'
   ```
 
@@ -132,7 +134,7 @@ Afterwards:
 Take `SkillFunctionArn` from the stack outputs. Put it in a **local copy** of the manifest, so no ARN gets committed:
 
 ```bash
-ARN=$(aws cloudformation describe-stacks --region ap-southeast-2 --stack-name Hearth-<hubId> \
+ARN=$(aws cloudformation describe-stacks --region "$HEARTH_AWS_REGION" --stack-name Hearth-<hubId> \
   --query "Stacks[0].Outputs[?OutputKey=='SkillFunctionArn'].OutputValue" --output text)
 mkdir -p .ask && jq --arg arn "$ARN" '.manifest.apis.custom.endpoint.uri = $arn' skill-package/skill.json > .ask/skill.json
 ask smapi update-skill-manifest --skill-id <skillId> --stage development --manifest "file:.ask/skill.json"
@@ -172,7 +174,7 @@ With the hub running you'll hear "Hub is online." With it stopped, "Your home hu
 The locale must match your Echo's language. To use, say, en-GB:
 
 1. Rename `skill-package/interactionModels/custom/en-IN.json` to `en-GB.json`, and change the key under `publishingInformation.locales` in `skill.json`.
-2. Set `"locale": "en-GB"` in `config/local.json`.
+2. Set `HEARTH_LOCALE=en-GB` in `.env`.
 3. `pnpm test`. The skill-package tests check that all three agree.
 
 ## Running everything without AWS

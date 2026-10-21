@@ -68,7 +68,7 @@ describe('spec drift', () => {
   it('constants.json agrees with the spec text', () => {
     const aws = contractSection('hearth-aws/CLAUDE.md', 'Contract with hearth-hub');
     const c = cloudHubV1.constants;
-    expect(aws).toContain(`Region: \`${c.region}\``);
+    expect(aws).toContain(`set once in the repo-root \`.env\` as \`${c.regionEnv}\``);
     expect(aws).toContain(`default \`${c.defaultHubId}\``);
     expect(aws).toContain(`(default ${c.replyTimeoutMsDefault}, never above ${c.replyTimeoutMsMax})`);
     expect(aws).toContain(`older than ${c.hubStaleAfterMs / 1000} s`);

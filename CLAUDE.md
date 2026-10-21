@@ -23,4 +23,5 @@ Rules:
 
 - When working in a project, follow that project's CLAUDE.md. The root `.claude/settings.json` merges every project's guardrails.
 - Every step gets a `progress/NN-<slug>.md` entry with commands and real output.
-- Never read `hearth-hub/certs/hub.key`. Never commit secrets, `config/local.json`, `out/`, `certs/` or `secrets/`.
+- Per-person values (email, AWS profile and region, IoT endpoint, skill ID, …) live only in the gitignored repo-root `.env`; `.env.example` is the committed template. Never put them in committed files.
+- Never read `hearth-hub/certs/hub.key`. Never commit secrets, `.env`, `out/`, `certs/` or `secrets/`.

@@ -34,7 +34,10 @@ const Env = z.object({
   /** Audit day files older than this are deleted at startup and daily. */
   AUDIT_RETENTION_DAYS: z.coerce.number().int().positive().default(90),
   POLICY_FILE: z.string().default(join(hubRoot, 'config', 'policy.yaml')),
-  DEVICES_FILE: z.string().default(join(hubRoot, 'config', 'devices.json')),
+  /** Your devices (gitignored). Falls back to the committed devices.example.json until you create it. */
+  DEVICES_FILE: z
+    .string()
+    .default(existsSync(join(hubRoot, 'config', 'devices.json')) ? join(hubRoot, 'config', 'devices.json') : join(hubRoot, 'config', 'devices.example.json')),
   /** json: static config/devices.json. mqtt: the hearth-devices platform through its core (local contract v1). */
   DEVICES: z.enum(['json', 'mqtt']).default('json'),
   DEVICES_BUS_URL: z.string().default('mqtt://127.0.0.1:1883'),

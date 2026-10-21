@@ -8,7 +8,7 @@ Out of scope: anything that runs on my home network, device control, and the loc
 
 ## How a request flows
 
-1. "Alexa, ask home hearth to <command>" makes Alexa call the skill Lambda in `ap-southeast-2`.
+1. "Alexa, ask home hearth to <command>" makes Alexa call the skill Lambda in the configured region (`HEARTH_AWS_REGION`).
 2. The Lambda publishes the command to `hearth/<hubId>/commands` through the IoT Data Plane.
 3. The hub, connected outbound over MQTT with its certificate, runs it and publishes to `hearth/<hubId>/replies`.
 4. An IoT rule writes the reply into a DynamoDB table with a 5 minute TTL.
@@ -18,7 +18,7 @@ Out of scope: anything that runs on my home network, device control, and the loc
 
 This section is identical in hearth-aws and hearth-hub. Never change one side alone: bump `v`, then update both CLAUDE.md files and both implementations together.
 
-- Region: `ap-southeast-2`
+- Region: one AWS Region per deployment, set once in the repo-root `.env` as `HEARTH_AWS_REGION` (this deployment: `ap-southeast-2`). hearth-aws deploys there; the handoff's `hub.env` carries it to the hub as `AWS_REGION`.
 - `hubId`: lowercase letters, digits and hyphens; default `laptop`
 - MQTT client ID and IoT thing name: `hearth-<hubId>`
 - Topics: `hearth/<hubId>/commands` (cloud to hub) and `hearth/<hubId>/replies` (hub to cloud), QoS 1
@@ -38,7 +38,7 @@ This section is identical in hearth-aws and hearth-hub. Never change one side al
 ## Layout
 
 ```text
-bin/hearth.ts                     CDK app entry, reads config/local.json
+bin/hearth.ts                     CDK app entry, reads the repo-root .env
 lib/hearth-stack.ts               all AWS resources
 lambda/skill/src/                 skill handler
 lambda/skill/test/                handler unit tests
@@ -46,15 +46,15 @@ test/                             CDK assertion tests
 skill-package/skill.json          skill manifest
 skill-package/interactionModels/custom/en-IN.json
 scripts/                          deploy and handoff helpers
-config/example.json               committed template with placeholders
-config/local.json                 my real values, gitignored
+../.env.example                   committed template with placeholders (repo root)
+../.env                           my real values, gitignored (repo root)
 out/                              handoff files for the hub, gitignored
 docs/runbook.md                   operations, including certificate rotation
 ```
 
 ## Config
 
-`config/local.json` holds `hubId`, `skillId`, `iotEndpoint`, `csrPath` (absolute path to the CSR that hearth-hub generated), `replyTimeoutMs`, `budgetEmail` and `locale` (default `en-IN`). Keep `config/example.json` in step with it. Optional: `debugUtterances` (default false, sets `DEBUG_UTTERANCES`), `certificates` (named list of CSRs for rotation; see `docs/runbook.md`), `hearthKillSwitchUsd` (default 1: Hearth's actual monthly cost) and `accountKillSwitchUsd` (default 5: the whole account's), at which automatic AWS Budgets actions deny Hearth's roles and stop the cloud side. Both can be overridden per deploy with `-c …`. Committed files contain no account IDs, skill IDs, endpoints or certificates.
+Per-person values live in the repo-root `.env` (gitignored; template `.env.example`), read by `lib/config.ts` and the scripts, with real environment variables taking precedence: `HEARTH_HUB_ID`, `HEARTH_AWS_REGION`, `HEARTH_SKILL_ID`, `HEARTH_IOT_ENDPOINT` (filled in by `scripts/configure.sh`), `HEARTH_CSR_PATH` (default `hearth-hub/certs/hub.csr`), `HEARTH_REPLY_TIMEOUT_MS`, `HEARTH_ALERT_EMAIL`, `HEARTH_LOCALE` (default `en-IN`), `HEARTH_KILL_SWITCH_USD` (default 1: Hearth's actual monthly cost) and `HEARTH_ACCOUNT_KILL_SWITCH_USD` (default 5: the whole account's), at which automatic AWS Budgets actions deny Hearth's roles and stop the cloud side, `HEARTH_DEBUG_UTTERANCES` and `HEARTH_CERTIFICATES` (JSON list for rotation; see `docs/runbook.md`). The two amounts can also be overridden per deploy with `-c hearthKillSwitchUsd=…`. Keep `.env.example` in step. Committed files contain no account IDs, skill IDs, endpoints or certificates.
 
 ## Resource rules
 

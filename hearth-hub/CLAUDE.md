@@ -17,7 +17,7 @@ Before choosing a model or a service manager, ask me which machine and OS the hu
 
 This section is identical in hearth-aws and hearth-hub. Never change one side alone: bump `v`, then update both CLAUDE.md files and both implementations together.
 
-- Region: `ap-southeast-2`
+- Region: one AWS Region per deployment, set once in the repo-root `.env` as `HEARTH_AWS_REGION` (this deployment: `ap-southeast-2`). hearth-aws deploys there; the handoff's `hub.env` carries it to the hub as `AWS_REGION`.
 - `hubId`: lowercase letters, digits and hyphens; default `laptop`
 - MQTT client ID and IoT thing name: `hearth-<hubId>`
 - Topics: `hearth/<hubId>/commands` (cloud to hub) and `hearth/<hubId>/replies` (hub to cloud), QoS 1

@@ -17,7 +17,7 @@ The full hub flow without a model: receive → validate → staleness/duplicates
 | `src/intent/keywordRouter.ts` | Temporary router. Narrow on purpose, with destructive verbs ("delete", "free up", "remove") excluded. |
 | `src/pipeline.ts` | Model output is treated as untrusted: unknown tool → `refused:unknown_tool`; args fail the tool's zod schema → `refused:bad_args`; then policy. Tool exceptions become a generic error reply (the message isn't spoken). Stage timings `intent/policy/tool/total` go to the log line, the audit line and the `hearth_hub_stage_duration_ms` histogram. |
 | `src/app.ts`, `src/cli/try.ts` | Shared builder; `pnpm try "<text>"` runs without MQTT. |
-| `config/policy.yaml`, `config/devices.json` | Voice ceiling `read`. Folders limited to `downloads` and `documents`. Devices: router (192.0.2.1:80) and the hub itself (127.0.0.1:8787). |
+| `config/policy.yaml`, `config/devices.json` | Voice ceiling `read`. Folders limited to `downloads` and `documents`. Devices: router (<router LAN address>:80) and the hub itself (127.0.0.1:8787). |
 
 ## Decision: file names are not spoken by default
 

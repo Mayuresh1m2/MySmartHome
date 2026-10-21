@@ -1,11 +1,14 @@
-import { readFileSync } from 'node:fs';
-import { isAbsolute, resolve } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { isAbsolute, join, resolve } from 'node:path';
+import { parseEnv } from 'node:util';
 import { z } from 'zod';
 
 export const HearthConfig = z.strictObject({
   hubId: z.string().regex(/^[a-z0-9-]+$/, 'lowercase letters, digits and hyphens'),
+  /** Where Hearth's AWS side lives. New-experience accounts: settings.aws.com → Project → Region. */
+  region: z.string().regex(/^[a-z]{2}-[a-z]+-\d$/, 'an AWS Region code, e.g. ap-southeast-2'),
   skillId: z.string().startsWith('amzn1.ask.skill.'),
-  iotEndpoint: z.string().regex(/^[a-z0-9]+-ats\.iot\.[a-z0-9-]+\.amazonaws\.com$/, 'the ATS data endpoint (aws iot describe-endpoint --endpoint-type iot:Data-ATS)'),
+  iotEndpoint: z.string().regex(/^[a-z0-9]+-ats\.iot\.[a-z0-9-]+\.amazonaws\.com$/, 'the ATS data endpoint (scripts/configure.sh fills it in)'),
   csrPath: z.string().min(1),
   replyTimeoutMs: z.int().positive().max(5000, 'contract: never above 5000').default(3000),
   budgetEmail: z.email(),
@@ -39,33 +42,96 @@ export interface HubCertificate {
 }
 export type HearthConfig = z.infer<typeof HearthConfig> & { csrPem: string; hubCertificates: HubCertificate[] };
 
-/** Loads config/local.json (or HEARTH_CONFIG) relative to the project root and reads the hub's CSR. */
-export function loadConfig(projectRoot: string, file = process.env.HEARTH_CONFIG ?? 'config/local.json'): HearthConfig {
-  const path = resolve(projectRoot, file);
-  let raw: unknown;
-  try {
-    raw = JSON.parse(readFileSync(path, 'utf8'));
-  } catch (err) {
-    throw new Error(`Cannot read ${path}: ${(err as Error).message}\nCopy config/example.json to config/local.json and fill it in.`);
-  }
-  const parsed = HearthConfig.safeParse(raw);
-  if (!parsed.success) throw new Error(`Invalid ${file}:\n${z.prettifyError(parsed.error)}`);
-  const readCsr = (p: string) => {
-    const path = isAbsolute(p) ? p : resolve(projectRoot, p);
-    const pem = readFileSync(path, 'utf8');
-    if (!pem.includes('BEGIN CERTIFICATE REQUEST')) throw new Error(`${path} is not a PEM CSR`);
-    if (pem.includes('PRIVATE KEY')) throw new Error(`${path} contains a private key. Point csrPath at the .csr only.`);
-    return pem;
-  };
-  const certs = parsed.data.certificates ?? [{ name: 'primary', csrPath: parsed.data.csrPath, active: true }];
-  const names = new Set(certs.map((c) => c.name));
-  if (names.size !== certs.length) throw new Error('certificate names must be unique');
-  if (!certs.some((c) => c.active)) throw new Error('at least one certificate must be active, or the hub cannot connect');
-  const hubCertificates = certs.map((c) => ({ name: c.name, csrPem: readCsr(c.csrPath), active: c.active }));
-  return { ...parsed.data, csrPem: hubCertificates[0]!.csrPem, hubCertificates };
+/** Every per-person setting comes from these variables (repo-root .env, see .env.example). */
+export const ENV_KEYS = {
+  hubId: 'HEARTH_HUB_ID',
+  region: 'HEARTH_AWS_REGION',
+  skillId: 'HEARTH_SKILL_ID',
+  iotEndpoint: 'HEARTH_IOT_ENDPOINT',
+  csrPath: 'HEARTH_CSR_PATH',
+  replyTimeoutMs: 'HEARTH_REPLY_TIMEOUT_MS',
+  budgetEmail: 'HEARTH_ALERT_EMAIL',
+  locale: 'HEARTH_LOCALE',
+  hearthKillSwitchUsd: 'HEARTH_KILL_SWITCH_USD',
+  accountKillSwitchUsd: 'HEARTH_ACCOUNT_KILL_SWITCH_USD',
+  debugUtterances: 'HEARTH_DEBUG_UTTERANCES',
+  certificates: 'HEARTH_CERTIFICATES',
+} as const satisfies Record<keyof z.infer<typeof HearthConfig>, string>;
+
+const NUMBERS = new Set(['replyTimeoutMs', 'hearthKillSwitchUsd', 'accountKillSwitchUsd']);
+
+export interface LoadOptions {
+  /** Path to the env file (absolute, or relative to the hearth-aws project). Default: HEARTH_ENV_FILE or <repo>/.env. */
+  envFile?: string;
+  /** Variables that override the file (default: process.env). Tests pass {} for isolation. */
+  env?: Record<string, string | undefined>;
 }
 
-/** Applies numeric overrides (e.g. from CDK context) with the same validation as the config file. */
+/**
+ * Builds the config from the repo-root .env (copied from .env.example), overridden by real environment variables,
+ * and reads the hub's CSR. Errors name the variable to fix.
+ */
+export function loadConfig(projectRoot: string, opts: LoadOptions = {}): HearthConfig {
+  const env = opts.env ?? process.env;
+  const repoRoot = resolve(projectRoot, '..');
+  const file = opts.envFile ?? env.HEARTH_ENV_FILE ?? join(repoRoot, '.env');
+  const path = isAbsolute(file) ? file : resolve(projectRoot, file);
+  if (!existsSync(path)) {
+    throw new Error(`Cannot find ${path}.\nCopy .env.example to .env at the repo root and fill it in (scripts/configure.sh helps).`);
+  }
+  const fromFile = parseEnv(readFileSync(path, 'utf8'));
+  const value = (k: string) => {
+    const v = (env[k] ?? fromFile[k])?.trim();
+    return v === undefined || v === '' ? undefined : v;
+  };
+
+  const raw: Record<string, unknown> = {};
+  for (const [field, key] of Object.entries(ENV_KEYS)) {
+    const v = value(key);
+    if (v === undefined) continue;
+    if (NUMBERS.has(field)) raw[field] = Number(v);
+    else if (field === 'debugUtterances') raw[field] = v === 'true';
+    else if (field === 'certificates') {
+      try {
+        raw[field] = JSON.parse(v);
+      } catch {
+        throw new Error(`${key} must be JSON, e.g. [{"name":"primary","csrPath":"…"}]`);
+      }
+    } else raw[field] = v;
+  }
+  raw.hubId ??= 'laptop';
+  raw.csrPath ??= join(repoRoot, 'hearth-hub', 'certs', 'hub.csr');
+
+  const parsed = HearthConfig.safeParse(raw);
+  if (!parsed.success) {
+    const lines = parsed.error.issues.map((i) => {
+      const key = ENV_KEYS[i.path[0] as keyof typeof ENV_KEYS] ?? i.path.join('.');
+      const missing = i.code === 'invalid_type' && raw[String(i.path[0])] === undefined;
+      return `  ${key}: ${missing ? 'not set' : i.message}`;
+    });
+    throw new Error(`Invalid settings in ${path}:\n${lines.join('\n')}`);
+  }
+  const c = parsed.data;
+  if (!c.iotEndpoint.includes(`.iot.${c.region}.`)) {
+    throw new Error(`${ENV_KEYS.iotEndpoint} (${c.iotEndpoint}) is not in ${ENV_KEYS.region}=${c.region}`);
+  }
+
+  const readCsr = (p: string) => {
+    const csr = isAbsolute(p) ? p : resolve(projectRoot, p);
+    const pem = readFileSync(csr, 'utf8');
+    if (!pem.includes('BEGIN CERTIFICATE REQUEST')) throw new Error(`${csr} is not a PEM CSR`);
+    if (pem.includes('PRIVATE KEY')) throw new Error(`${csr} contains a private key. Point ${ENV_KEYS.csrPath} at the .csr only.`);
+    return pem;
+  };
+  const certs = c.certificates ?? [{ name: 'primary', csrPath: c.csrPath, active: true }];
+  const names = new Set(certs.map((x) => x.name));
+  if (names.size !== certs.length) throw new Error('certificate names must be unique');
+  if (!certs.some((x) => x.active)) throw new Error('at least one certificate must be active, or the hub cannot connect');
+  const hubCertificates = certs.map((x) => ({ name: x.name, csrPem: readCsr(x.csrPath), active: x.active }));
+  return { ...c, csrPem: hubCertificates[0]!.csrPem, hubCertificates };
+}
+
+/** Applies numeric overrides (e.g. from CDK context) with the same validation as the env file. */
 export function applyOverrides(config: HearthConfig, overrides: Partial<Pick<HearthConfig, 'hearthKillSwitchUsd' | 'accountKillSwitchUsd'>>): HearthConfig {
   const limits = HearthConfig.pick({ hearthKillSwitchUsd: true, accountKillSwitchUsd: true }).partial().safeParse(overrides);
   if (!limits.success) throw new Error(`Invalid override:\n${z.prettifyError(limits.error)}`);

@@ -27,11 +27,11 @@ esac
 `,
   );
   chmodSync(join(bin, 'aws'), 0o755);
-  const config = join(dir, 'local.json');
-  writeFileSync(config, JSON.stringify({ hubId: 'laptop', iotEndpoint: 'abc123-ats.iot.ap-southeast-2.amazonaws.com' }));
+  const config = join(dir, '.env');
+  writeFileSync(config, '# test settings\nHEARTH_HUB_ID=laptop\nHEARTH_AWS_REGION=ap-southeast-2\nHEARTH_IOT_ENDPOINT=abc123-ats.iot.ap-southeast-2.amazonaws.com\n');
   const out = join(dir, 'out');
   const run = (...args: string[]) =>
-    spawnSync('bash', [script, ...args], { env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, HEARTH_CONFIG: config, OUT_DIR: out }, encoding: 'utf8' });
+    spawnSync('bash', [script, ...args], { env: { PATH: `${bin}:${process.env.PATH}`, HOME: process.env.HOME, HEARTH_ENV_FILE: config, OUT_DIR: out }, encoding: 'utf8' });
   return { run, out, log };
 }
 

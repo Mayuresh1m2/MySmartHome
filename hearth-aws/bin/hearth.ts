@@ -15,8 +15,8 @@ const config = applyOverrides(loadConfig(projectRoot), { ...fromContext('hearthK
 new HearthStack(app, `Hearth-${config.hubId}`, {
   config,
   projectRoot,
-  // Region is fixed by the contract; the account comes from the CLI profile.
-  env: { region: 'ap-southeast-2', account: process.env.CDK_DEFAULT_ACCOUNT },
+  // Region from .env (HEARTH_AWS_REGION, carried to the hub by the handoff); the account from the CLI profile.
+  env: { region: config.region, account: process.env.CDK_DEFAULT_ACCOUNT },
   description: `Hearth: Alexa skill relay to home hub ${config.hubId}`,
   tags: { project: 'hearth', hubId: config.hubId },
 });

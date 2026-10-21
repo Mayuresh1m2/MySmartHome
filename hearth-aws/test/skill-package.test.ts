@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 
 const pkg = resolve(import.meta.dirname, '..', 'skill-package');
 const manifest = JSON.parse(readFileSync(join(pkg, 'skill.json'), 'utf8')).manifest;
-const example = JSON.parse(readFileSync(resolve(import.meta.dirname, '..', 'config', 'example.json'), 'utf8'));
+// The committed template's locale (the user's own .env must match their Echo).
+const example = { locale: /^HEARTH_LOCALE=(.+)$/m.exec(readFileSync(resolve(import.meta.dirname, '..', '..', '.env.example'), 'utf8'))![1]! };
 const models = readdirSync(join(pkg, 'interactionModels', 'custom'));
 const model = JSON.parse(readFileSync(join(pkg, 'interactionModels', 'custom', 'en-IN.json'), 'utf8')).interactionModel.languageModel;
 

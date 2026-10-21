@@ -13,7 +13,8 @@ export const cloudHubV1 = {
   reply: readJson('cloud-hub/v1/reply.schema.json'),
   constants: readJson('cloud-hub/v1/constants.json') as {
     v: 1;
-    region: string;
+    /** The region is per deployment: the name of the setting that holds it. */
+    regionEnv: string;
     hubIdPattern: string;
     defaultHubId: string;
     clientIdPrefix: string;

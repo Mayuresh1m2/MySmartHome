@@ -10,7 +10,7 @@ import { applyOverrides, loadConfig, type HearthConfig } from '../lib/config.js'
 import { HearthStack } from '../lib/hearth-stack.js';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const base = loadConfig(projectRoot, 'config/example.json');
+const base = loadConfig(projectRoot, { envFile: 'test/fixtures/test.env', env: {} });
 let n = 0;
 const synth = (over: Partial<HearthConfig> = {}) =>
   Template.fromStack(new HearthStack(new App(), `K${n++}`, { config: { ...base, ...over }, projectRoot, env: { account: '111122223333', region: 'ap-southeast-2' } }));
@@ -86,17 +86,18 @@ describe('configurable amounts', () => {
     expect(() => applyOverrides(base, { hearthKillSwitchUsd: 500 })).toThrow(/Invalid override/);
   });
 
-  it('scripts/kill-switch.sh set hearth|account updates config/local.json and rejects bad values', () => {
+  it('scripts/kill-switch.sh set hearth|account updates the .env and rejects bad values', () => {
     const dir = mkdtempSync(join(tmpdir(), 'hearth-ks-'));
-    const cfg = join(dir, 'local.json');
-    writeFileSync(cfg, JSON.stringify({ hubId: 'laptop', hearthKillSwitchUsd: 1, accountKillSwitchUsd: 5 }));
-    const run = (...a: string[]) => spawnSync('bash', [join(projectRoot, 'scripts', 'kill-switch.sh'), ...a], { env: { ...process.env, HEARTH_CONFIG: cfg, PATH: '/usr/bin:/bin' }, encoding: 'utf8' });
+    const env = join(dir, '.env');
+    writeFileSync(env, '# my settings\nHEARTH_AWS_REGION=ap-southeast-2\nHEARTH_KILL_SWITCH_USD=1\n');
+    const run = (...a: string[]) => spawnSync('bash', [join(projectRoot, 'scripts', 'kill-switch.sh'), ...a], { env: { HEARTH_ENV_FILE: env, PATH: '/usr/bin:/bin' }, encoding: 'utf8' });
+    const read = () => readFileSync(env, 'utf8');
     expect(run('set', 'hearth', '2.5').status).toBe(0);
-    expect(run('set', 'account', '20').status).toBe(0);
-    expect(JSON.parse(readFileSync(cfg, 'utf8'))).toMatchObject({ hearthKillSwitchUsd: 2.5, accountKillSwitchUsd: 20 });
+    expect(run('set', 'account', '20').status).toBe(0); // not in the file yet: appended
+    expect(read()).toBe('# my settings\nHEARTH_AWS_REGION=ap-southeast-2\nHEARTH_KILL_SWITCH_USD=2.5\nHEARTH_ACCOUNT_KILL_SWITCH_USD=20\n');
     for (const bad of ['0', '-1', 'abc', '1000']) expect(run('set', 'hearth', bad).status, bad).not.toBe(0);
     expect(run('set', 'account', '5000').status).not.toBe(0);
     expect(run('set', 'everything', '1').status).not.toBe(0);
-    expect(JSON.parse(readFileSync(cfg, 'utf8'))).toMatchObject({ hearthKillSwitchUsd: 2.5, accountKillSwitchUsd: 20 });
+    expect(read()).toContain('HEARTH_KILL_SWITCH_USD=2.5');
   });
 });

@@ -33,3 +33,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 26 | [26-hub-service-and-gpu-power.md](26-hub-service-and-gpu-power.md) | H2 (hub M4) | done on the local stack; real-Alexa reboot after AWS |
 | 27 | [27-cost-kill-switch.md](27-cost-kill-switch.md) | hearth-aws cost guard | done (deploy pending) |
 | 28 | [28-aws-account-and-region.md](28-aws-account-and-region.md) | G1′ (AWS account) | region → ap-southeast-2; your sign-in steps next |
+| 29 | [29-env-config-and-privacy.md](29-env-config-and-privacy.md) | privacy + .env | done |

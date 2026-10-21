@@ -7,7 +7,7 @@ import { loadConfig, type HearthConfig } from '../lib/config.js';
 import { HearthStack } from '../lib/hearth-stack.js';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const base = loadConfig(projectRoot, 'config/example.json');
+const base = loadConfig(projectRoot, { envFile: 'test/fixtures/test.env', env: {} });
 let n = 0;
 const synth = (over: Partial<HearthConfig> = {}) =>
   Template.fromStack(new HearthStack(new App(), `T${n++}`, { config: { ...base, ...over }, projectRoot, env: { account: '111122223333', region: 'ap-southeast-2' } }));

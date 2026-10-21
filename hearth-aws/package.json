@@ -8,7 +8,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "cdk": "cdk",
-    "synth:example": "HEARTH_CONFIG=config/example.json cdk synth --quiet"
+    "synth:example": "HEARTH_ENV_FILE=test/fixtures/test.env cdk synth --quiet"
   },
   "dependencies": {
     "aws-cdk-lib": "^2.273.0",

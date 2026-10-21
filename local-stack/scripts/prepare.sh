@@ -4,7 +4,8 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 STACK="$ROOT/local-stack"; STATE="$STACK/.state"
-HUB_ID="${HUB_ID:-laptop}"
+. "$ROOT/scripts/env.sh"; hearth_load_env 2>/dev/null || true
+HUB_ID="${HUB_ID:-${HEARTH_HUB_ID:-laptop}}"
 mkdir -p "$STATE/logs" "$STATE/pids" "$STATE/audit"
 CSR="$ROOT/hearth-hub/certs/hub.csr"
 [ -e "$CSR" ] || { echo "No hub CSR. Run: hearth-hub/scripts/make-csr.sh" >&2; exit 1; }
@@ -17,7 +18,7 @@ IOT_ENDPOINT=localhost
 MQTT_PORT=${HUB_MQTT_PORT:-8893}
 MQTT_PROTOCOL_VERSION=${HUB_MQTT_VERSION:-5}
 HUB_ID=$HUB_ID
-AWS_REGION=ap-southeast-2
+AWS_REGION=${HEARTH_AWS_REGION:-ap-southeast-2}
 CERT_FILE=$STATE/hub-local.crt
 CA_FILE=$STATE/ca/ca.crt
 AUDIT_DIR=$STATE/audit

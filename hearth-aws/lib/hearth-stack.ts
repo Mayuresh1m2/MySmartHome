@@ -29,7 +29,8 @@ export class HearthStack extends Stack {
     const name = `hearth-${config.hubId}`;
     const commandsTopic = `hearth/${config.hubId}/commands`;
     const repliesTopic = `hearth/${config.hubId}/replies`;
-    // The contract pins ap-southeast-2, which is in the "aws" partition; a literal keeps ARNs exact and reviewable.
+    // Commercial regions are in the "aws" partition (the region regex excludes cn-/gov-style codes being used here);
+    // a literal partition keeps ARNs exact and reviewable.
     const iotArn = (resource: string) => `arn:aws:iot:${this.region}:${this.account}:${resource}`;
 
     // ---- Hub identity: certificates from the hub's CSRs. AWS never creates or sees the private key.

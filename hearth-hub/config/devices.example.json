@@ -1,0 +1,25 @@
+{
+  "devices": [
+    {
+      "id": "router",
+      "name": "router",
+      "aliases": [
+        "wifi",
+        "internet box",
+        "gateway"
+      ],
+      "host": "192.0.2.1",
+      "port": 80
+    },
+    {
+      "id": "hub",
+      "name": "hub",
+      "aliases": [
+        "hearth",
+        "laptop"
+      ],
+      "host": "127.0.0.1",
+      "port": 8787
+    }
+  ]
+}

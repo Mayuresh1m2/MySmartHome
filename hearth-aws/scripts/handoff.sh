@@ -2,20 +2,21 @@
 # Hand the hub its identity after a deploy: fetches the certificate PEM issued from the hub's CSR and writes
 #   out/hub.crt   (or out/hub-<name>.crt for a non-primary certificate during rotation)
 #   out/hub.env   IOT_ENDPOINT, HUB_ID, AWS_REGION
-# Uses the AWS CLI's configured profile. Writes no credentials. The hub's private key is never involved.
+# Settings from the repo-root .env. Uses the AWS CLI profile (AWS_PROFILE). Writes no credentials.
+# The hub's private key is never involved.
 # Usage: scripts/handoff.sh [certificate-name]      (default: primary)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-CONFIG="${HEARTH_CONFIG:-$ROOT/config/local.json}"
+. "$ROOT/../scripts/env.sh"
+hearth_load_env
 OUT="${OUT_DIR:-$ROOT/out}"
-REGION=ap-southeast-2
+REGION="${HEARTH_AWS_REGION:?set HEARTH_AWS_REGION in .env}"
 NAME="${1:-primary}"
 
 command -v aws >/dev/null || { echo "aws CLI not found" >&2; exit 1; }
 command -v jq >/dev/null || { echo "jq not found" >&2; exit 1; }
-[ -f "$CONFIG" ] || { echo "missing $CONFIG" >&2; exit 1; }
-HUB_ID=$(jq -er .hubId "$CONFIG")
-ENDPOINT=$(jq -er .iotEndpoint "$CONFIG")
+HUB_ID="${HEARTH_HUB_ID:-laptop}"
+ENDPOINT="${HEARTH_IOT_ENDPOINT:?set HEARTH_IOT_ENDPOINT in .env (scripts/configure.sh)}"
 STACK="Hearth-$HUB_ID"
 SUFFIX=$([ "$NAME" = primary ] && echo "" || echo "$NAME")
 

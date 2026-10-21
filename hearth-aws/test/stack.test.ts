@@ -15,7 +15,7 @@ type Statement = { Effect: string; Action: string | string[]; Resource: unknown 
 const actionsOf = (s: Statement) => (Array.isArray(s.Action) ? s.Action : [s.Action]);
 
 beforeAll(() => {
-  const config = loadConfig(projectRoot, 'config/example.json');
+  const config = loadConfig(projectRoot, { envFile: 'test/fixtures/test.env', env: {} });
   const app = new App();
   const stack = new HearthStack(app, 'Test', { config, projectRoot, env: { account: ACCOUNT, region: 'ap-southeast-2' } });
   t = Template.fromStack(stack);

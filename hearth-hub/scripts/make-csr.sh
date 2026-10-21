@@ -55,5 +55,5 @@ echo "Key:  $KEY (mode 600, stays on this machine)"
 echo "CSR:  $CSR"
 echo "CSR subject: $(openssl req -in "$CSR" -noout -subject)"
 echo
-echo "Put this absolute path in hearth-aws/config/local.json as \"csrPath\":"
+echo "hearth-aws finds it here by default; set HEARTH_CSR_PATH in the repo-root .env only if it lives elsewhere:"
 echo "  $CSR"
