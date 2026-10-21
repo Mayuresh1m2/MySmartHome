@@ -11,6 +11,8 @@ case "${1:-status}" in
     setsid bash -c "echo \$\$ > '$PIDF'; OLLAMA_HOST=$ADDR exec ollama serve" >"$LOG" 2>&1 </dev/null &
     for _ in $(seq 1 50); do [ -n "$(listener)" ] && break; sleep 0.2; done
     [ "$(listener)" = "$(cat "$PIDF")" ] || { echo "listener pid $(listener) != pidfile $(cat "$PIDF")" >&2; exit 1; }
+    # GPU discovery finishes a couple of seconds after the port opens.
+    for _ in $(seq 1 50); do grep -q 'msg="inference compute"' "$LOG" && break; sleep 0.2; done
     echo "started (pid $(cat "$PIDF")); compute: $(grep -oE 'msg="inference compute".*' "$LOG" | grep -oE 'library=[A-Za-z]+|description="[^"]*"' | paste -sd' ')"
     ;;
   stop)

@@ -8,7 +8,7 @@ Three projects, each with its own CLAUDE.md that governs work inside it:
 
 Shared:
 
-- `contracts/`: JSON Schemas and fixtures for the cloud↔hub contract (v1) and the local device contract (v0). Change a contract here first, then both sides in the same commit.
+- `contracts/`: JSON Schemas and fixtures for the cloud↔hub contract (v1) and the local device contract (v1). Change a contract here first, then both sides in the same commit.
 - `local-stack/`: runs the whole system on one machine without AWS (emulated IoT Core broker with mTLS, emulated DynamoDB).
 - `PLAN.md`: master plan and approval gates. `progress/`: journal of every step, with evidence.
 

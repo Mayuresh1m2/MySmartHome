@@ -25,3 +25,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 18 | [18-ollama-qwen-eval.md](18-ollama-qwen-eval.md) | D1 (G2) | qwen2.5:3b evaluated; latency target missed, decision pending |
 | 19 | [19-local-contract-v1-hub-via-core.md](19-local-contract-v1-hub-via-core.md) | F2 | done |
 | 20 | [20-gpu-finding-and-model-comparison.md](20-gpu-finding-and-model-comparison.md) | D1 | GPU discovered; 3b-on-GPU best; reboot + soak test next |
+| 21 | [21-gpu-soak-thermal-shutdown.md](21-gpu-soak-thermal-shutdown.md) | D1 | GPU stable for 249 requests; laptop thermal shutdown; decision pending |

@@ -4,7 +4,7 @@
  * (tool exists, args schema, policy), then prints accuracy, refusal coverage and intent latency p50/p95.
  * Tools are not executed. Results are also written to test/evals/results/ for before/after comparisons.
  */
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { buildApp } from '../../src/app.js';
@@ -53,6 +53,15 @@ async function argsMatch(expected: Record<string, string>, got: Record<string, u
 
 const cases = loadCases();
 const rows: { text: string; expected: string; got: string; ok: boolean; ms: number }[] = [];
+// Each row is appended as it completes, so an interrupted run (crash, power loss) still leaves its evidence.
+const resultsDir = join(hubRoot, 'test', 'evals', 'results');
+mkdirSync(resultsDir, { recursive: true });
+const runId = `${new Date().toISOString().replace(/[:.]/g, '-')}-${app.intent.name}${app.intent instanceof OllamaIntent ? `-${config.OLLAMA_MODEL.replace(/[^a-z0-9.]/gi, '_')}` : ''}`;
+const partial = join(resultsDir, `${runId}.partial.jsonl`);
+const record = (row: (typeof rows)[number]) => {
+  rows.push(row);
+  appendFileSync(partial, JSON.stringify({ at: new Date().toISOString(), ...row }) + '\n');
+};
 for (let r = 0; r < Number(flags.repeat); r++) {
   for (const c of cases) {
     const t0 = performance.now();
@@ -78,9 +87,9 @@ for (let r = 0; r < Number(flags.repeat); r++) {
         const gotArgs = got.startsWith(`${c.tool}(`) ? (JSON.parse(got.slice(c.tool.length + 1, got.lastIndexOf(')'))) as Record<string, unknown>) : null;
         ok = !refused && gotArgs !== null && (await argsMatch(c.args ?? {}, gotArgs));
       }
-      rows.push({ text: c.text, expected: 'refuse' in c ? 'refuse' : `${c.tool}${c.args ? JSON.stringify(c.args) : ''}`, got, ok, ms });
+      record({ text: c.text, expected: 'refuse' in c ? 'refuse' : `${c.tool}${c.args ? JSON.stringify(c.args) : ''}`, got, ok, ms });
     } catch (err) {
-      rows.push({ text: c.text, expected: 'refuse' in c ? 'refuse' : c.tool, got: `error: ${(err as Error).message}`, ok: false, ms: performance.now() - t0 });
+      record({ text: c.text, expected: 'refuse' in c ? 'refuse' : c.tool, got: `error: ${(err as Error).message}`, ok: false, ms: performance.now() - t0 });
     }
   }
 }
@@ -99,8 +108,6 @@ const summary = {
 };
 for (const r of rows.filter((x) => !x.ok)) console.log(`✘ ${JSON.stringify(r.text)}  expected ${r.expected}  got ${r.got}`);
 console.log(JSON.stringify(summary));
-const dir = join(hubRoot, 'test', 'evals', 'results');
-mkdirSync(dir, { recursive: true });
-writeFileSync(join(dir, `${summary.at.replace(/[:.]/g, '-')}-${summary.engine}${summary.model ? `-${summary.model.replace(/[^a-z0-9.]/gi, '_')}` : ''}.json`), JSON.stringify({ summary, rows }, null, 2));
+writeFileSync(join(resultsDir, `${runId}.json`), JSON.stringify({ summary, rows }, null, 2));
 const pass = summary.accuracy >= 0.9 && mustRefuse.every((r) => r.ok) && summary.p95Ms < 4000;
 console.log(pass ? 'M3 targets met' : 'M3 targets NOT met (accuracy >= 90%, all refusals, p95 < 4000 ms)');
