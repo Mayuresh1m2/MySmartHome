@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# Hearth as systemd *user* services (no root): install | uninstall | status | restart
+# Hearth as systemd *user* services (no root): install | uninstall | start | stop | status | restart
 #   scripts/services.sh install [--target local|aws]   local (default): hub + local IoT emulator + local cloud
 #                                                       aws: hub against real IoT Core (config/hub.env, certs/hub.crt)
+#   scripts/services.sh stop    stop everything Hearth runs on this machine (hub, Ollama and its loaded model, the
+#                               hearth-devices bus) and keep it off across reboots, until `start`
+#   scripts/services.sh start   start the installed units again and re-enable them at boot (the bus stays off:
+#                               nothing uses it yet; hearth-devices/scripts/bus.sh up when device work needs it)
 # Logs: journalctl --user -u 'hearth-*' (journald rotates them). Starts at boot via linger.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -50,19 +54,48 @@ uninstall() {
   echo "units removed (linger left as is: loginctl disable-linger $USER to turn it off)"
 }
 
+installed() { for u in "${ALL[@]}"; do [ -e "$UNITS/$u.service" ] && echo "$u"; done; }
+
+stop() {
+  local units; units=$(installed)
+  # disable --now: stopped now and not started at boot (linger stays on, so `start` brings boot-start back).
+  [ -n "$units" ] && sc disable --now $units 2>/dev/null
+  # Anything started by hand outside the units.
+  if ls "$ROOT/local-stack/.state/pids/"* >/dev/null 2>&1; then bash "$ROOT/local-stack/scripts/down.sh" >/dev/null 2>&1 || true; fi
+  "$ROOT/scripts/ollama.sh" stop >/dev/null 2>&1 || true
+  # The devices bus container has restart: unless-stopped, so `down` is what keeps it off after a reboot.
+  if docker ps --format '{{.Names}}' 2>/dev/null | grep -q '^hearth-devices-'; then bash "$ROOT/hearth-devices/scripts/bus.sh" down >/dev/null 2>&1 || true; fi
+  echo "Hearth stopped and won't start at boot (scripts/services.sh start to turn it back on)."
+  echo "Alexa now answers \"Your home hub didn't answer in time. It might be offline.\" The AWS side stays deployed (idle cost: next to nothing)."
+  status
+}
+
+start() {
+  local units; units=$(installed)
+  [ -n "$units" ] || { echo "no Hearth units installed: scripts/services.sh install --target aws" >&2; exit 1; }
+  sc enable --now $units
+  # The hub reports ready once the model has warmed up (about 20 s); until then the keyword router answers.
+  for _ in $(seq 1 30); do curl -fsS -m 2 http://127.0.0.1:8787/health >/dev/null 2>&1 && break; sleep 1; done
+  status
+}
+
 status() {
   for u in "${ALL[@]}"; do
     [ -e "$UNITS/$u.service" ] || continue
     printf '  %-20s %-9s %s\n' "$u" "$(sc is-active "$u" 2>/dev/null || true)" "$(sc is-enabled "$u" 2>/dev/null || true)"
   done
   echo "  linger: $(loginctl show-user "$USER" -p Linger --value 2>/dev/null)"
-  curl -fsS -m 2 http://127.0.0.1:8787/health 2>/dev/null | jq -c '{status, mqtt: .mqtt.state, modelLoaded, thermal}' || echo "  hub health: not answering yet"
+  echo "  devices bus: $(docker ps --filter name=hearth-devices- --format '{{.Status}}' 2>/dev/null | head -1 | grep . || echo stopped)"
+  echo "  model in memory: $(curl -fsS -m 2 http://127.0.0.1:11434/api/ps 2>/dev/null | jq -r '[.models[].name] | join(", ") | if .=="" then "none" else . end' || echo "none (Ollama stopped)")"
+  curl -fsS -m 2 http://127.0.0.1:8787/health 2>/dev/null | jq -c '{status, mqtt: .mqtt.state, modelLoaded, thermal}' || echo "  hub health: not answering"
 }
 
 case "${1:-status}" in
   install) shift; install "$@" ;;
   uninstall) uninstall ;;
+  start) start ;;
+  stop) stop ;;
   status) status ;;
   restart) sc restart hearth-hub ;;
-  *) echo "usage: $0 install [--target local|aws] | uninstall | status | restart" >&2; exit 2 ;;
+  *) echo "usage: $0 install [--target local|aws] | uninstall | start | stop | status | restart" >&2; exit 2 ;;
 esac

@@ -24,3 +24,18 @@ pnpm local:down
 pnpm test                               # all JS and Python tests
 pnpm hearth:doctor                      # what's installed, configured and running
 ```
+
+## Turning it off and on
+
+The hub runs as systemd user services that start at boot (no login needed). When you don't need it:
+
+```bash
+scripts/services.sh stop     # hub, Ollama + model (frees ~2 GB VRAM, ~0.4 GB RAM), devices bus; stays off across reboots
+scripts/services.sh start    # back on, and starting at boot again (model ready ~20 s later)
+scripts/services.sh status
+```
+
+While it's off (or the laptop is asleep) Alexa says "Your home hub didn't answer in time. It might be offline." The
+AWS side stays deployed. Closing the lid or idle sleep (on battery, after 15 min) suspends the laptop and the hub with it;
+after resume the hub should notice the dead connection within about 30 s and reconnect by itself (as in the Wi-Fi
+off/on test, progress/33). Suspend and resume itself is not tested yet.
