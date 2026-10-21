@@ -1,0 +1,20 @@
+# hearth-devices bus. `scripts/bus-setup.sh` must run first (creates passwords, passwd and acl in ../secrets).
+# Host networking per the devices spec (adapters need multicast); Mosquitto itself listens on 127.0.0.1 only.
+name: hearth-devices
+services:
+  mosquitto:
+    # Pinned by digest: 2.0.22, pulled 2026-10-21.
+    image: eclipse-mosquitto:2.0.22@sha256:199ea8ef2e35ec2b1b37e59cfd1dbae538ed4dfa4a2251a121a52215a6248a21
+    network_mode: host
+    # Run as the owner so the 0600 secret files stay unreadable to everyone else on the host.
+    user: "${HOST_UID:?run via scripts/bus.sh}:${HOST_GID:?run via scripts/bus.sh}"
+    restart: unless-stopped
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ../secrets/mosquitto:/mosquitto/secrets:ro
+      - ./mosquitto/data:/mosquitto/data
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -h 127.0.0.1 -p 1883 -u healthcheck -P healthcheck -t '$$SYS/broker/uptime' -C 1 -W 3 >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

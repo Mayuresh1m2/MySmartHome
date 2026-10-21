@@ -28,3 +28,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 21 | [21-gpu-soak-thermal-shutdown.md](21-gpu-soak-thermal-shutdown.md) | D1 | GPU stable for 249 requests; laptop thermal shutdown; decision pending |
 | 22 | [22-thermal-guard.md](22-thermal-guard.md) | D1 decided (hub M3) | done |
 | 23 | [23-docker-and-prereqs.md](23-docker-and-prereqs.md) | G1 + prereqs script | engine installed; re-login pending |
+| 24 | [24-mosquitto-bus.md](24-mosquitto-bus.md) | E3 (devices Phase 1) | done |

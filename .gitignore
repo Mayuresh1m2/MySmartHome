@@ -34,3 +34,4 @@ local-stack/.state/
 # hearth-devices audit
 hearth-devices/data/
 hearth-hub/test/evals/results/
+hearth-devices/deploy/mosquitto/data/

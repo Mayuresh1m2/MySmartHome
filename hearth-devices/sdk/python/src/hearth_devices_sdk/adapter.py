@@ -108,8 +108,10 @@ class AdapterRunner:
             keepalive=30,
         ) as client:
             self._client = client
-            await self._announce()
+            # Subscribe before announcing: once meta/state say "online", core may send a set immediately, and a
+            # set that reaches the broker before this subscription exists is lost (seen on real Mosquitto).
             await client.subscribe(SET_FILTER, qos=1)
+            await self._announce()
             self.ready.set()
             self.log.info("adapter online", extra={"adapter": self.adapter.adapter_id, "devices": list(self.devices)})
             serve = asyncio.create_task(self._serve())

@@ -114,7 +114,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 ### Phase E — Devices platform skeleton (hearth-devices Phase 1) — local; Mosquitto needs G1
 - [x] E1 Python SDK (uv, aiomqtt, pydantic, ruff, pytest) + TS SDK (vitest): meta/state/result publishing, last will, schema validation against `contracts/local-devices/v0`
 - [x] E2 fake adapter, registry, audit log, policy by risk class; tests on aedes/amqtt in-process
-- [!] E3 Mosquitto with auth (docker or apt), acceptance: fake adapter appears, handles `set`, publishes `result`+`state`, goes offline via last will
+- [x] E3 Mosquitto with auth (docker or apt), acceptance: fake adapter appears, handles `set`, publishes `result`+`state`, goes offline via last will
 - [!] E4 Phase 0 research: device table (needs G9 from user), one doc per device, classification and order — research subagents only when the user wants them
 
 ### Phase F — Hub gateway seam (hearth-hub M5)

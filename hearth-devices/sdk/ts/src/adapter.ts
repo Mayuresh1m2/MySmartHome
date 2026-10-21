@@ -70,6 +70,15 @@ export class AdapterRunner {
       keepalive: 30,
       will: { topic: this.statusTopic, payload: Buffer.from('offline'), qos: 1, retain: true },
     });
+    // Subscribe before announcing: once meta/state say "online", core may send a set immediately, and a set
+    // that reaches the broker before this subscription exists is lost (seen on real Mosquitto).
+    this.client.on('message', (topic, payload) => {
+      const parts = topic.split('/');
+      if (parts.length === 5 && parts[4] === 'set' && this.devices.has(parts[3]!)) {
+        this.handleSet(parts[3]!, payload).catch((err: Error) => this.log('error', 'set handling failed', { err: err.message }));
+      }
+    });
+    await this.client.subscribeAsync(SET_FILTER, { qos: 1 });
     await this.client.publishAsync(this.statusTopic, 'online', { qos: 1, retain: true });
     // mqtt.js reconnects and resubscribes on its own, but the broker published our last will ("offline") when
     // the link dropped, so announce "online" again and refresh state after every reconnect.
@@ -86,13 +95,6 @@ export class AdapterRunner {
       await this.client.publishAsync(deviceTopic(meta.id, 'meta'), JSON.stringify(meta), { qos: 1, retain: true });
       await this.publishState(meta.id);
     }
-    this.client.on('message', (topic, payload) => {
-      const parts = topic.split('/');
-      if (parts.length === 5 && parts[4] === 'set' && this.devices.has(parts[3]!)) {
-        this.handleSet(parts[3]!, payload).catch((err: Error) => this.log('error', 'set handling failed', { err: err.message }));
-      }
-    });
-    await this.client.subscribeAsync(SET_FILTER, { qos: 1 });
     this.poll = setInterval(() => {
       for (const d of this.devices.keys()) {
         // Background work must never surface as an unhandled rejection (it would kill the adapter process).
