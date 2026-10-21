@@ -3,6 +3,9 @@ Description=Hearth: Ollama model server (127.0.0.1 only)
 
 [Service]
 Environment=OLLAMA_HOST=127.0.0.1:11434
+# Ollama picks its compute device once at startup; make sure the GPU is there first.
+ExecStartPre=@REPO@/scripts/wait-gpu.sh 120
+TimeoutStartSec=180
 ExecStart=%h/.local/bin/ollama serve
 Restart=on-failure
 RestartSec=5

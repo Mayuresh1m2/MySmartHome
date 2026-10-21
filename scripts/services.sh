@@ -19,18 +19,21 @@ install() {
   [ "${1:-}" = --target ] && target="${2:?local|aws}"
   mkdir -p "$UNITS"
   # Stop anything started by hand (pnpm local:up, scripts/ollama.sh) so the units can own the ports.
-  bash "$ROOT/local-stack/scripts/down.sh" >/dev/null 2>&1 || true
-  "$ROOT/scripts/ollama.sh" stop >/dev/null 2>&1 || true
+  # Only when hand-started (pid files): down.sh would also stop the IoT container a running unit owns.
+  if ls "$ROOT/local-stack/.state/pids/"* >/dev/null 2>&1; then bash "$ROOT/local-stack/scripts/down.sh" >/dev/null 2>&1 || true; fi
+  sc is-active --quiet hearth-ollama || "$ROOT/scripts/ollama.sh" stop >/dev/null 2>&1 || true
   if [ "$target" = aws ]; then
     [ -e "$ROOT/hearth-hub/config/hub.env" ] && [ -e "$ROOT/hearth-hub/certs/hub.crt" ] || { echo "aws target needs hearth-hub/config/hub.env and certs/hub.crt (hearth-aws scripts/handoff.sh)" >&2; exit 1; }
     sc disable --now hearth-local-stack hearth-local-iot 2>/dev/null || true
     rm -f "$UNITS/hearth-local-stack.service" "$UNITS/hearth-local-iot.service"
     render hearth-ollama; render hearth-hub "" "$ROOT/hearth-hub/config/hub.env" ""
-    sc daemon-reload; sc enable --now hearth-ollama hearth-hub
+    sc daemon-reload; sc enable hearth-ollama hearth-hub; sc restart hearth-ollama hearth-hub
   else
     for u in hearth-ollama hearth-local-iot hearth-local-stack; do render "$u" "" "" ""; done
     render hearth-hub "" "$ROOT/local-stack/.state/hub.local.env" "hearth-local-stack.service"
-    sc daemon-reload; sc enable --now hearth-ollama hearth-local-iot hearth-local-stack hearth-hub
+    sc daemon-reload; sc enable hearth-ollama hearth-local-iot hearth-local-stack hearth-hub
+    # restart (not just start) so changed units take effect
+    sc restart hearth-ollama hearth-local-iot hearth-local-stack hearth-hub
   fi
   if [ "$(loginctl show-user "$USER" -p Linger --value 2>/dev/null)" != yes ]; then
     loginctl enable-linger "$USER" && echo "linger enabled (services start at boot without a login)" \

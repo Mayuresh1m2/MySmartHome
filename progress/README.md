@@ -30,3 +30,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 23 | [23-docker-and-prereqs.md](23-docker-and-prereqs.md) | G1 + prereqs script | engine installed; re-login pending |
 | 24 | [24-mosquitto-bus.md](24-mosquitto-bus.md) | E3 (devices Phase 1) | done |
 | 25 | [25-iot-emulator-mqtt5.md](25-iot-emulator-mqtt5.md) | E3 follow-up (hub on MQTT 5) | done |
+| 26 | [26-hub-service-and-gpu-power.md](26-hub-service-and-gpu-power.md) | H2 (hub M4) | units + reboot test done; render group + reboot pending |

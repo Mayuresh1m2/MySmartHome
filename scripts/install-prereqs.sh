@@ -4,7 +4,8 @@
 #   scripts/install-prereqs.sh            same as --check: report what is present/missing, change nothing
 #   scripts/install-prereqs.sh --system   sudo part (run it YOURSELF in a real terminal; never from Claude):
 #                                         apt: docker.io docker-compose-v2 mosquitto-clients jq curl openssl zstd
-#                                         and adds you to the docker group (root-equivalent; re-login afterwards)
+#                                         and adds you to the docker (root-equivalent), render and video groups;
+#                                         reboot afterwards so the user services pick the groups up
 #   scripts/install-prereqs.sh --user     no root: pnpm (corepack), uv, Ollama (user install, checksum verified,
 #                                         no CUDA libs), the hub model, workspace deps, hub key + CSR
 #   scripts/install-prereqs.sh --devices-tools   sudo: nmap avahi-utils tcpdump (Phase 0 device research)
@@ -40,6 +41,7 @@ check() {
     id -nG | grep -qw docker && ok "in docker group (active in this login)" || miss "in docker group, but not active yet: log out and back in"
   else miss "not in docker group"; fi
   systemctl is-active --quiet docker 2>/dev/null && ok "docker service active" || miss "docker service not active"
+  for g in render video; do getent group "$g" | grep -qw "$USER" && ok "in $g group (GPU access for boot-time services)" || miss "not in $g group (Ollama at boot would run on CPU)"; done
 
   step "User (needs --user, no root)"
   have node && [ "$(node -p 'process.versions.node.split(".")[0]')" -ge 22 ] && ok "node $(node --version)" || miss "node >= 22 (install via fnm/nvm; not handled here)"
@@ -72,9 +74,12 @@ system_install() {
   step "apt: ${APT_SYSTEM[*]}"
   sudo apt-get update
   sudo apt-get install -y "${APT_SYSTEM[@]}"
-  step "docker group"
-  if getent group docker | grep -qw "$USER"; then ok "already a member"; else sudo usermod -aG docker "$USER"; ok "added; log out and back in for it to apply"; fi
+  for g in docker render video; do
+    step "$g group"
+    if getent group "$g" | grep -qw "$USER"; then ok "already a member"; else sudo usermod -aG "$g" "$USER"; ok "added; applies after the next reboot (services) or login (shells)"; fi
+  done
   echo "Note: the docker group is root-equivalent on this machine."
+  echo "render/video let the boot-time Ollama service use the GPU without a desktop login."
 }
 
 devices_tools_install() {
