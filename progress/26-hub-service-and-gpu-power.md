@@ -79,3 +79,19 @@ Reinstalling the units ran `local-stack/scripts/down.sh` to stop hand-started pr
 1. You: `sudo usermod -aG render,video $USER` (or rerun `scripts/install-prereqs.sh --system`), then reboot.
 2. Me: confirm `ollama ps` shows 100% GPU right after boot, with the first commands at ~1.6–2 s.
 3. Real "Alexa" after a reboot waits for AWS (G3/G4), then `scripts/services.sh install --target aws`.
+
+## Second reboot, after you added `render,video` (M4 acceptance, local stack)
+
+```text
+boot 12:02:19 · groups: video docker render
+hearth-ollama active 12:02:35 → 12:02:37 msg="inference compute" library=Vulkan name=Vulkan1 description="AMD Radeon R9 M375 (RADV …)"
+$ ollama ps → qwen2.5:3b 2.1 GB 100% GPU Forever          model warmed up: 16244 ms
+all four units active/enabled, linger yes, hub {"status":"ok","mqtt":"connected","modelLoaded":true,"thermal":{"gpuC":62,"cpuC":59}}
+
+> how much space is left    🗣 You have 142 gigabytes free out of 467, about 30 percent.  ok       2043 ms  (model 1957: prompt 481, gen 1463)
+> is the hub alive          🗣 Sorry, I can't do that.                                    refused  3988 ms  (model 3971: gen 3499; known 3b miss, longer output)
+> can you reach the router  🗣 The router is online.                                     ok       2456 ms  (model 2416)
+> delete all my files       🗣 Sorry, I can't do that.                                    refused  1991 ms  (model 1936)
+```
+
+**hub M4 is done for the local stack:** started on boot with no login and no manual steps, restarts on failure, logs rotated by journald, audit retention, the model on the GPU from boot. "Answers Alexa after a reboot" with real Alexa needs AWS (G3/G4): run `scripts/services.sh install --target aws` once the handoff files exist, then repeat the reboot test.

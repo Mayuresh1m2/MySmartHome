@@ -130,7 +130,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 
 ### Phase H — Hardening and operations
 - [x] H1 aws M4: budget, alarm, log retention, `DEBUG_UTTERANCES`, CloudWatch dashboard, `docs/runbook.md` cert rotation — runbook awaits user review
-- [!] H2 hub M4: systemd user/system unit, restart on failure, journald rotation, reboot test (G6)
+- [x] H2 hub M4: systemd user units + linger, restart on failure, journald, GPU awake + render group — reboot test passed on the local stack; real-Alexa reboot test after G3/G4
 - [x] C5 skill package (manifest + en-IN interaction model) with rule tests — privacy answers await user review
 - [x] H3 aws M5: README for self-deployment incl. handoff — ASK commands to be confirmed at M3 (G4)
 
