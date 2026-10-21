@@ -48,6 +48,7 @@ export async function buildApp(
           tools: [...tools.values()].filter((t) => enabled.has(t.name)),
           log,
           metrics,
+          timeoutMs: config.INTENT_TIMEOUT_MS,
         })
       : new KeywordRouter());
   const unknown = [...enabled].filter((n) => !tools.has(n));

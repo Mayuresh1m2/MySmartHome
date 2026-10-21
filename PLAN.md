@@ -107,7 +107,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [x] C4 Local e2e test: request → hub → spoken reply; hub off → fallback; trace by `requestId`
 
 ### Phase D — Local model (hearth-hub M3) — needs G2
-- [!] D1 Install Ollama, benchmark candidate models on this CPU, pick one, record in Environment
+- [~] D1 Install Ollama, benchmark candidate models on this CPU, pick one, record in Environment — Ollama 0.40.6 + qwen2.5:3b done (91.7 %, 20/20, p95 ≈ 4.0 s, misses latency); next: user picks 1.5b / fast path / longer timeout
 - [x] D2 intent module (one call, tool calling, untrusted output), warm-up + keep-alive, latency metrics — code + mocked tests; real-model check waits for G2
 - [x] D3 `pnpm eval` with ≥ 40 phrasings incl. must-refuse; target ≥ 90 %, all refusals, p95 < 4 s — harness + 48 cases done; keyword baseline 83.3 %, 20/20; model run waits for G2
 

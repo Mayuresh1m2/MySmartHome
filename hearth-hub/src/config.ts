@@ -20,6 +20,8 @@ const Env = z.object({
   OLLAMA_HOST: z.string().default('http://127.0.0.1:11434'),
   OLLAMA_MODEL: z.string().default(''),
   INTENT: z.enum(['keyword', 'ollama']).default('keyword'),
+  /** Per-command model budget. Must stay below the Lambda's REPLY_TIMEOUT_MS minus publish time. */
+  INTENT_TIMEOUT_MS: z.coerce.number().int().positive().max(4800).default(4000),
   HEALTH_PORT: z.coerce.number().int().nonnegative().default(8787),
   AUDIT_DIR: z.string().default(join(hubRoot, 'data', 'audit')),
   AUDIT_TEXT: z.stringbool().default(true),
