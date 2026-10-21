@@ -12,7 +12,7 @@ ALL=(hearth-ollama hearth-local-iot hearth-local-stack hearth-hub)
 sc() { systemctl --user "$@"; }
 
 render() { # template target hub_env hub_wants
-  sed -e "s#@REPO@#$ROOT#g" -e "s#@MODEL@#$MODEL#g" -e "s#@HUB_ENV@#$3#g" -e "s#@HUB_WANTS@#$4#g" "$ROOT/deploy/systemd/$1.service.in" > "$UNITS/$1.service"
+  sed -e "s#@REPO@#$ROOT#g" -e "s#@MODEL@#$MODEL#g" -e "s#@HUB_ENV@#${3:-}#g" -e "s#@HUB_WANTS@#${4:-}#g" "$ROOT/deploy/systemd/$1.service.in" > "$UNITS/$1.service"
 }
 
 install() {

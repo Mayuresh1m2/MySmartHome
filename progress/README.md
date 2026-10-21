@@ -34,3 +34,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 27 | [27-cost-kill-switch.md](27-cost-kill-switch.md) | hearth-aws cost guard | done (deploy pending) |
 | 28 | [28-aws-account-and-region.md](28-aws-account-and-region.md) | G1′ (AWS account) | region → ap-southeast-2; your sign-in steps next |
 | 29 | [29-env-config-and-privacy.md](29-env-config-and-privacy.md) | privacy + .env | done |
+| 30 | [30-first-deploy.md](30-first-deploy.md) | aws M2, hub M1 | deployed; hub on real IoT Core |

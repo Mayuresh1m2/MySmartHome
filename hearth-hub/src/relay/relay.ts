@@ -81,6 +81,9 @@ export class Relay {
       ca: readFileSync(o.caPath),
       servername: o.host,
       rejectUnauthorized: true,
+      // Node's "happy eyeballs" gives each address only 250 ms by default. From India to IoT Core in Sydney the TCP
+      // connect alone takes ~0.4 s, so every attempt was abandoned (ETIMEDOUT) although the endpoint is reachable.
+      ...({ autoSelectFamilyAttemptTimeout: 3000 } as object),
     });
 
     this.client.on('connect', () => void this.onConnect());
