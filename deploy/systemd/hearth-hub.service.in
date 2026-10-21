@@ -1,0 +1,18 @@
+[Unit]
+Description=Hearth hub (outbound MQTT to IoT Core, local model, allowlisted tools)
+Wants=hearth-ollama.service @HUB_WANTS@
+After=hearth-ollama.service @HUB_WANTS@
+
+[Service]
+WorkingDirectory=@REPO@/hearth-hub
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+# Local stack until the AWS handoff exists; then scripts/services.sh install --target aws (config/hub.env).
+Environment=HUB_ENV_FILE=@HUB_ENV@
+Environment=INTENT=ollama OLLAMA_MODEL=@MODEL@
+ExecStart=@REPO@/hearth-hub/node_modules/.bin/tsx src/index.ts
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=default.target

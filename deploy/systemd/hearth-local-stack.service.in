@@ -1,0 +1,16 @@
+[Unit]
+Description=Hearth: local cloud (skill, rule, DynamoDB emulator) — until the hub uses AWS
+Requires=hearth-local-iot.service
+After=hearth-local-iot.service
+
+[Service]
+WorkingDirectory=@REPO@/local-stack
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Environment=HUB_ID=laptop IOT_PORT=8893 REPLY_TIMEOUT_MS=5000 INTENT=ollama OLLAMA_MODEL=@MODEL@
+ExecStartPre=@REPO@/local-stack/scripts/prepare.sh
+ExecStart=@REPO@/local-stack/node_modules/.bin/tsx src/cli/stack.ts
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

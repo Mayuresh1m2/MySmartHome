@@ -8,6 +8,8 @@
 #   scripts/install-prereqs.sh --user     no root: pnpm (corepack), uv, Ollama (user install, checksum verified,
 #                                         no CUDA libs), the hub model, workspace deps, hub key + CSR
 #   scripts/install-prereqs.sh --devices-tools   sudo: nmap avahi-utils tcpdump (Phase 0 device research)
+#   scripts/install-prereqs.sh --gpu-awake  sudo: udev rule that keeps the AMD dGPU from runtime-suspending, so a
+#                                         voice command after idle isn't slowed by a ~3 s GPU resume (progress/26)
 #   scripts/install-prereqs.sh --aws      no root: AWS CLI v2 into ~/.local (gate G3)
 #   scripts/install-prereqs.sh --ask      no root: ASK CLI v2 into ~/.local (gate G4)
 #
@@ -20,6 +22,10 @@ PNPM_VERSION="$(jq -r '.packageManager | sub("^pnpm@"; "")' "$ROOT/package.json"
 APT_SYSTEM=(docker.io docker-compose-v2 mosquitto-clients jq curl openssl zstd)
 APT_DEVICES=(nmap avahi-utils tcpdump)
 DL="$HOME/.cache/hearth-prereqs"
+UDEV_RULE=/etc/udev/rules.d/90-hearth-dgpu-awake.rules
+
+# The discrete AMD GPU Ollama uses: "<pci address> <vendor> <device>", or nothing.
+amd_dgpu() { lspci -Dn 2>/dev/null | awk '$2 ~ /^03(00|02|80):$/ && $3 ~ /^1002:/ {split($3, id, ":"); print $1, id[1], id[2]; exit}'; }
 
 have() { command -v "$1" >/dev/null 2>&1; }
 ok()   { printf '  \033[32m✔\033[0m %s\n' "$*"; }
@@ -47,6 +53,12 @@ check() {
   [ -d "$ROOT/hearth-devices/.venv" ] && ok "hearth-devices .venv" || miss "hearth-devices venv (uv sync --all-packages)"
   [ -e "$ROOT/hearth-hub/certs/hub.csr" ] && ok "hub CSR (key never read)" || miss "hub key + CSR (hearth-hub/scripts/make-csr.sh)"
 
+  step "GPU"
+  if read -r addr _ _ < <(amd_dgpu); then
+    ctl=$(cat "/sys/bus/pci/devices/$addr/power/control" 2>/dev/null)
+    [ "$ctl" = on ] && ok "AMD dGPU $addr kept awake (power/control=on)" || miss "AMD dGPU $addr may runtime-suspend (power/control=$ctl): --gpu-awake"
+  else echo "  · no AMD dGPU found"; fi
+
   step "Optional (gated)"
   have aws && ok "$(aws --version 2>&1 | cut -d' ' -f1)" || echo "  · aws cli: not installed (--aws, gate G3)"
   have ask && ok "ask cli $(ask --version 2>/dev/null)" || echo "  · ask cli: not installed (--ask, gate G4)"
@@ -68,6 +80,15 @@ system_install() {
 devices_tools_install() {
   [ -t 0 ] || { echo "--devices-tools needs a real terminal for sudo." >&2; exit 1; }
   sudo apt-get install -y "${APT_DEVICES[@]}"
+}
+
+gpu_awake_install() {
+  [ -t 0 ] || { echo "--gpu-awake needs a real terminal for sudo." >&2; exit 1; }
+  read -r addr vendor device < <(amd_dgpu) || { echo "no AMD dGPU found" >&2; exit 1; }
+  step "keep AMD dGPU $addr ($vendor:$device) awake"
+  echo "ACTION==\"add|bind\", SUBSYSTEM==\"pci\", ATTR{vendor}==\"0x$vendor\", ATTR{device}==\"0x$device\", ATTR{power/control}=\"on\"" | sudo tee "$UDEV_RULE" >/dev/null
+  echo on | sudo tee "/sys/bus/pci/devices/$addr/power/control" >/dev/null
+  ok "$UDEV_RULE written; applied now: $(cat "/sys/bus/pci/devices/$addr/power/control")"
 }
 
 install_ollama() {
@@ -130,10 +151,11 @@ for arg in "$@"; do
     --check) check ;;
     --system) system_install ;;
     --devices-tools) devices_tools_install ;;
+    --gpu-awake) gpu_awake_install ;;
     --user) user_install ;;
     --aws) aws_install ;;
     --ask) ask_install ;;
-    -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,18p' "$0"; exit 0 ;;
     *) echo "unknown flag: $arg" >&2; exit 2 ;;
   esac
 done

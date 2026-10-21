@@ -1,4 +1,4 @@
-import { appendFile, mkdir } from 'node:fs/promises';
+import { appendFile, mkdir, readdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
 export interface AuditEntry {
@@ -41,6 +41,20 @@ export class AuditLog {
       await appendFile(file, JSON.stringify(entry) + '\n', { mode: 0o600 });
     });
     return this.chain;
+  }
+
+  /** Deletes day files older than `days` (by the date in the file name). Returns the names removed. */
+  async prune(days: number, now = Date.now()): Promise<string[]> {
+    const cutoff = new Date(now - days * 86_400_000).toISOString().slice(0, 10);
+    let files: string[] = [];
+    try {
+      files = await readdir(this.dir);
+    } catch {
+      return [];
+    }
+    const old = files.filter((f) => /^\d{4}-\d{2}-\d{2}\.jsonl$/.test(f) && f.slice(0, 10) < cutoff);
+    await Promise.all(old.map((f) => rm(join(this.dir, f))));
+    return old;
   }
 
   /** Resolves when every queued line is on disk. */

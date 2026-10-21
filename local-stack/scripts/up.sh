@@ -15,13 +15,6 @@ mkdir -p "$STATE/logs" "$STATE/pids" "$STATE/audit"
 running() { [ -f "$STATE/pids/$1" ] && kill -0 "$(cat "$STATE/pids/$1")" 2>/dev/null; }
 if running stack || running hub; then echo "already running (pnpm local:down first)"; exit 1; fi
 
-CSR="$ROOT/hearth-hub/certs/hub.csr"
-[ -e "$CSR" ] || { echo "No hub CSR. Run: hearth-hub/scripts/make-csr.sh"; exit 1; }
-"$STACK/scripts/local-ca.sh" init >/dev/null
-if [ ! -e "$STATE/hub-local.crt" ] || [ "$CSR" -nt "$STATE/hub-local.crt" ]; then
-  "$STACK/scripts/local-ca.sh" sign "$CSR" "$STATE/hub-local.crt"
-fi
-
 # IoT Core emulator: Mosquitto (MQTT 5, like AWS) when Docker is usable, else the in-process aedes broker (3.1.1).
 if [ -z "${BROKER:-}" ]; then docker info >/dev/null 2>&1 && BROKER=mosquitto || BROKER=aedes; fi
 if [ "$BROKER" = mosquitto ]; then
@@ -31,20 +24,7 @@ else
   unset IOT_PORT; HUB_MQTT_PORT=$BROKER_PORT; HUB_MQTT_VERSION=4
 fi
 
-cat > "$STATE/hub.local.env" <<ENV
-IOT_ENDPOINT=localhost
-MQTT_PORT=$HUB_MQTT_PORT
-MQTT_PROTOCOL_VERSION=$HUB_MQTT_VERSION
-HUB_ID=$HUB_ID
-AWS_REGION=eu-west-1
-CERT_FILE=$STATE/hub-local.crt
-CA_FILE=$STATE/ca/ca.crt
-AUDIT_DIR=$STATE/audit
-HEALTH_PORT=$HEALTH_PORT
-INTENT=${INTENT:-keyword}
-OLLAMA_MODEL=${OLLAMA_MODEL:-}
-INTENT_TIMEOUT_MS=${INTENT_TIMEOUT_MS:-4300}
-ENV
+HUB_MQTT_PORT=$HUB_MQTT_PORT HUB_MQTT_VERSION=$HUB_MQTT_VERSION "$STACK/scripts/prepare.sh"
 
 wait_for() { # url, seconds
   for _ in $(seq 1 $(( $2 * 5 ))); do curl -fsS -m 1 "$1" >/dev/null 2>&1 && return 0; sleep 0.2; done; return 1

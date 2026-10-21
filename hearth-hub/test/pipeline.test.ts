@@ -112,3 +112,15 @@ describe('pipeline', () => {
     expect(await s.auditLines()).toHaveLength(20);
   });
 });
+
+describe('audit retention', () => {
+  it('prunes day files older than the retention, keeps recent and foreign files', async () => {
+    const { writeFileSync } = await import('node:fs');
+    const dir = mkdtempSync(join(tmpdir(), 'hearth-prune-'));
+    dirs.push(dir);
+    for (const f of ['2026-06-01.jsonl', '2026-07-22.jsonl', '2026-07-23.jsonl', '2026-10-20.jsonl', 'notes.txt']) writeFileSync(join(dir, f), '');
+    const removed = await new AuditLog(dir, true).prune(90, Date.parse('2026-10-21T00:00:00Z'));
+    expect(removed.sort()).toEqual(['2026-06-01.jsonl', '2026-07-22.jsonl']);
+    expect(readdirSync(dir).sort()).toEqual(['2026-07-23.jsonl', '2026-10-20.jsonl', 'notes.txt']);
+  });
+});

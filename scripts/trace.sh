@@ -8,8 +8,9 @@ files=()
 for f in "$ROOT"/local-stack/.state/logs/*.log "$ROOT"/local-stack/.state/audit/*.jsonl "$ROOT"/hearth-hub/data/audit/*.jsonl; do
   [ -e "$f" ] && files+=("$f")
 done
-[ ${#files[@]} -gt 0 ] || { echo "no logs found"; exit 1; }
-grep -h -F "$ID" "${files[@]}" | grep '^{' | jq -c -s '
+# Services run under systemd log to journald; include those lines too.
+journal=$(journalctl --user -o cat -u 'hearth-*' --since '-2 days' 2>/dev/null | grep -F "$ID" || true)
+{ [ ${#files[@]} -gt 0 ] && grep -h -F "$ID" "${files[@]}"; [ -n "$journal" ] && echo "$journal"; } | grep '^{' | jq -c -s '
   sort_by(.ts // .time) | .[] |
   {t: ((.ts // .time) | tostring | .[11:23]),
    src: (.svc // (if .decision then "hub-audit" else "?" end)),

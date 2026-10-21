@@ -1,0 +1,11 @@
+[Unit]
+Description=Hearth: Ollama model server (127.0.0.1 only)
+
+[Service]
+Environment=OLLAMA_HOST=127.0.0.1:11434
+ExecStart=%h/.local/bin/ollama serve
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

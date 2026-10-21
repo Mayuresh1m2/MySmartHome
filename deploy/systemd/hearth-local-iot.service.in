@@ -1,0 +1,15 @@
+[Unit]
+Description=Hearth: local IoT Core emulator (Mosquitto, MQTT 5, mTLS) — until the hub uses AWS IoT Core
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+# docker.service is a system unit, so a user unit can't order after it; wait for the socket instead.
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 60); do docker info >/dev/null 2>&1 && exit 0; sleep 2; done; echo docker not available; exit 1'
+ExecStart=@REPO@/local-stack/scripts/iot-mosquitto.sh up
+ExecStop=@REPO@/local-stack/scripts/iot-mosquitto.sh down
+TimeoutStartSec=180
+
+[Install]
+WantedBy=default.target

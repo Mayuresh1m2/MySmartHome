@@ -55,6 +55,15 @@ if (model) {
   }, 60_000).unref();
 }
 
+// Audit retention: prune at startup and once a day.
+const pruneAudit = () =>
+  app.audit
+    .prune(config.AUDIT_RETENTION_DAYS)
+    .then((removed) => removed.length && log.info({ removed, days: config.AUDIT_RETENTION_DAYS }, 'old audit files removed'))
+    .catch((err: Error) => log.warn({ err: err.message }, 'audit prune failed'));
+void pruneAudit();
+setInterval(pruneAudit, 86_400_000).unref();
+
 // Sample temperatures every 15 s for /health and /metrics (the guard also reads them per command).
 let lastTemps = await app.thermal.temps();
 setInterval(() => {

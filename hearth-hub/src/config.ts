@@ -31,6 +31,8 @@ const Env = z.object({
   HEALTH_PORT: z.coerce.number().int().nonnegative().default(8787),
   AUDIT_DIR: z.string().default(join(hubRoot, 'data', 'audit')),
   AUDIT_TEXT: z.stringbool().default(true),
+  /** Audit day files older than this are deleted at startup and daily. */
+  AUDIT_RETENTION_DAYS: z.coerce.number().int().positive().default(90),
   POLICY_FILE: z.string().default(join(hubRoot, 'config', 'policy.yaml')),
   DEVICES_FILE: z.string().default(join(hubRoot, 'config', 'devices.json')),
   /** json: static config/devices.json. mqtt: the hearth-devices platform through its core (local contract v1). */
