@@ -27,7 +27,7 @@ export interface LocalStackOptions {
 export interface LocalStack {
   broker: CloudTransport;
   ports: { broker: number; ddb: number; control: number };
-  /** What "Alexa, ask home hearth to <text>" would return. */
+  /** What "Alexa, ask chowkidar ji to <text>" would return. */
   say(text: string): Promise<{ speech: string; outcome: string; requestId: string | null; latencyMs: number }>;
   close(): Promise<void>;
 }

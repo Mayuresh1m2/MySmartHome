@@ -48,3 +48,17 @@ Lambda log ("command relayed", CloudWatch, last 10 min):
 | Delete `backup/pre-email-rewrite` once you're happy (old history, local only) | you |
 
 `pnpm local:up` still works for development, but its hub would collide with the service on 127.0.0.1:8787. Stop the service first (`systemctl --user stop hearth-hub`) or use another `HEALTH_PORT`.
+
+## Real Echo, and a new invocation name
+
+- **"Alexa, open home hearth" → "how much space is left" worked on your Echo:** Lambda log `15:48:12 {"outcome":"ok","latencyMs":2890,"textLength":22}`, hub `disk_space` via the model in 1967 ms. That's **hub M2's acceptance on real hardware.**
+- The one-shot **"Alexa, ask home hearth how much space is left"** answered "I'm not sure how to help", and that request **never reached the Lambda** (only my 3 simulations appear in the invocations metric). The account was fine, since the skill showed in your Alexa app's Dev tab. English (India) speech recognition was missing the rare word "hearth" inside a sentence.
+- Amazon's invocation-name rules (developer.amazon.com, "Choose the invocation name"): at least two words unless it's your own brand; a person's name needs another word; no Alexa/Echo/skill/app; must not infringe others' IP (enforced at certification). On "Jarvis": Marvel's character, so not for a published skill; it's also one word and has many published namesakes. You chose a Hindi name instead: **`chowkidar ji`** ("watchman"; spelled the common Indian-English way so the transcription matches).
+- Changed: interaction model `invocationName`, manifest name "Chowkidar Ji (Hearth)" and example phrases, the hearth-aws/CLAUDE.md invocation rule (with the reason), README/runbook/spec text, the skill-package test (asserts two words), and the Lambda's help sentence (deploys with the next `cdk deploy`).
+
+```text
+set-interaction-model en-IN → SUCCEEDED (errors null) · update-skill-manifest → SUCCEEDED
+simulate "ask chowkidar ji to ping"                 → IntentRequest slot "ping" → "Hub is online."
+simulate "ask chowkidar ji how much space is left"  → "You have 141 gigabytes free out of 467, about 30 percent."
+simulate "open chowkidar ji"                        → LaunchRequest → "Hearth is ready. What should I ask your home hub?"
+```

@@ -71,7 +71,7 @@ Everything else (scaffolding, code, tests, local stack, docs) proceeds autonomou
 4. Local end-to-end — `local-stack` driven by a test: fake Alexa request → spoken reply; plus hub-down → honest fallback within `REPLY_TIMEOUT_MS`.
 5. CDK assertion tests — least-privilege policy, no function URL, table/TTL/rule, alarm, budget.
 6. LLM evals — `pnpm eval`, ≥ 40 phrasings incl. must-refuse; accuracy, p50, p95.
-7. Cloud acceptance — only after G3/G4: `aws iot-data publish` → table item; `ask dialog`/simulate "ask home hearth to ping".
+7. Cloud acceptance — only after G3/G4: `aws iot-data publish` → table item; `ask dialog`/simulate "ask chowkidar ji to ping".
 
 ### 3.4 Observability
 - **One correlation key:** `requestId` appears in every log line, audit line, metric exemplar and DynamoDB item, from Lambda → hub → tool → device adapter.
@@ -126,7 +126,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [x] G2' aws M2: deployed; fake reply → table item; handoff → out/hub.crt + out/hub.env (progress/30)
 - [~] G3' hub M1 real: hub on IoT Core, fake command → reply item ✔; Wi-Fi off/on reconnect test is the owner's
 - [x] G4' aws M3: skill created, endpoint set, dev testing enabled; simulation: hub on → reply, hub off → fallback (progress/31)
-- [!] G5' hub M2 acceptance: "Alexa, ask home hearth how much space is left" end to end
+- [x] G5' hub M2 acceptance: real Echo (open → how much space is left) answered via the model; invocation renamed to "chowkidar ji" (progress/31)
 
 ### Phase H — Hardening and operations
 - [x] H1 aws M4: budget, alarm, log retention, `DEBUG_UTTERANCES`, CloudWatch dashboard, `docs/runbook.md` cert rotation — runbook awaits user review

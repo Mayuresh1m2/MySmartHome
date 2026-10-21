@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "home hearth",
+      "invocationName": "chowkidar ji",
       "intents": [
         {
           "name": "CommandIntent",

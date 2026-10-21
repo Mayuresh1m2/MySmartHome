@@ -91,7 +91,7 @@ chmod 600 hub.key
 curl -s 127.0.0.1:8787/health                       # mqtt.state must be "connected"
 ```
 
-Then check end to end: "Alexa, ask home hearth to ping" should answer "Hub is online."
+Then check end to end: "Alexa, ask chowkidar ji to ping" should answer "Hub is online."
 
 If the hub doesn't connect, move `old/*` back and restart. The old certificate is still active, so rollback is instant.
 

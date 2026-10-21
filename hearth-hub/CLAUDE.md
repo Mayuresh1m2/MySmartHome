@@ -128,7 +128,7 @@ Work one milestone at a time, in order.
 
 ### M2: Tools, policy and audit, without a model
 - Tools: `list_folder`, `disk_space`, `is_device_online` (TCP check against `devices.json`) and `last_result`. A temporary keyword router stands in for the intent module. Add `policy.yaml`, the audit log and the health endpoint.
-- Done when unit tests pass and "Alexa, ask home hearth how much space is left" works end to end.
+- Done when unit tests pass and "Alexa, ask chowkidar ji how much space is left" works end to end.
 
 ### M3: Local model
 - Ollama tool calling replaces the keyword router. Warm the model up at startup, keep it loaded, log latency, and build `pnpm eval` with at least 40 phrasings.

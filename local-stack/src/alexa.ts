@@ -3,7 +3,7 @@ import type { RequestEnvelope } from 'ask-sdk-model';
 
 export const LOCAL_SKILL_ID = 'amzn1.ask.skill.local-stack';
 
-/** Builds the request Alexa sends for "ask home hearth to <text>": CommandIntent with the command slot. */
+/** Builds the request Alexa sends for "ask chowkidar ji to <text>": CommandIntent with the command slot. */
 export function commandEnvelope(text: string, locale = 'en-IN'): RequestEnvelope {
   const app = { applicationId: LOCAL_SKILL_ID };
   const user = { userId: 'amzn1.ask.account.local' };
