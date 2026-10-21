@@ -125,7 +125,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [x] G1' AWS CLI (aws login), .env, cdk bootstrap
 - [x] G2' aws M2: deployed; fake reply → table item; handoff → out/hub.crt + out/hub.env (progress/30)
 - [~] G3' hub M1 real: hub on IoT Core, fake command → reply item ✔; Wi-Fi off/on reconnect test is the owner's
-- [!] G4' aws M3: ASK CLI skill create → save ID → deploy → set endpoint → enable dev testing; simulate "ask home hearth to ping" with hub off (fallback) and on (reply)
+- [x] G4' aws M3: skill created, endpoint set, dev testing enabled; simulation: hub on → reply, hub off → fallback (progress/31)
 - [!] G5' hub M2 acceptance: "Alexa, ask home hearth how much space is left" end to end
 
 ### Phase H — Hardening and operations
