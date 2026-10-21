@@ -29,3 +29,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 22 | [22-thermal-guard.md](22-thermal-guard.md) | D1 decided (hub M3) | done |
 | 23 | [23-docker-and-prereqs.md](23-docker-and-prereqs.md) | G1 + prereqs script | engine installed; re-login pending |
 | 24 | [24-mosquitto-bus.md](24-mosquitto-bus.md) | E3 (devices Phase 1) | done |
+| 25 | [25-iot-emulator-mqtt5.md](25-iot-emulator-mqtt5.md) | E3 follow-up (hub on MQTT 5) | done |

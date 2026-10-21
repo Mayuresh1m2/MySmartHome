@@ -5,7 +5,8 @@ import dynalite from 'dynalite';
 import { createServer, type Server } from 'node:http';
 import { join } from 'node:path';
 import { LOCAL_SKILL_ID, commandEnvelope, speechOf } from './alexa.js';
-import { startBroker, type LocalBroker } from './broker.js';
+import { startBroker } from './broker.js';
+import { connectCloud, type CloudTransport } from './cloudClient.js';
 
 export interface LocalStackOptions {
   hubId: string;
@@ -19,10 +20,12 @@ export interface LocalStackOptions {
   certFile?: string;
   keyFile?: string;
   log?: (event: Record<string, unknown>) => void;
+  /** Use an external MQTT 5 broker (the Mosquitto IoT emulator) instead of the in-process aedes broker. */
+  externalIot?: { port: number; caFile: string; certFile: string; keyFile: string };
 }
 
 export interface LocalStack {
-  broker: LocalBroker;
+  broker: CloudTransport;
   ports: { broker: number; ddb: number; control: number };
   /** What "Alexa, ask home hearth to <text>" would return. */
   say(text: string): Promise<{ speech: string; outcome: string; requestId: string | null; latencyMs: number }>;
@@ -61,15 +64,17 @@ export async function startLocalStack(o: LocalStackOptions): Promise<LocalStack>
     }),
   );
 
-  // IoT Core
-  const broker = await startBroker({
-    hubId: o.hubId,
-    port: o.brokerPort ?? 0,
-    caFile: o.caFile ?? join(ca, 'ca.crt'),
-    certFile: o.certFile ?? join(ca, 'server.crt'),
-    keyFile: o.keyFile ?? join(ca, 'server.key'),
-    log: (e) => log({ svc: 'local-iot', ...e }),
-  });
+  // IoT Core: in-process aedes (MQTT 3.1.1), or the Mosquitto emulator (MQTT 5) reached as the "hearth-cloud" client.
+  const broker: CloudTransport = o.externalIot
+    ? await connectCloud({ ...o.externalIot, log: (e) => log({ svc: 'local-iot', ...e }) })
+    : await startBroker({
+        hubId: o.hubId,
+        port: o.brokerPort ?? 0,
+        caFile: o.caFile ?? join(ca, 'ca.crt'),
+        certFile: o.certFile ?? join(ca, 'server.crt'),
+        keyFile: o.keyFile ?? join(ca, 'server.key'),
+        log: (e) => log({ svc: 'local-iot', ...e }),
+      });
 
   // IoT rule: SELECT *, floor(timestamp() / 1000) + 300 AS expiresAt FROM 'hearth/<hubId>/replies' → DynamoDBv2 PutItem
   broker.onMessage(`hearth/${o.hubId}/replies`, (payload) => {
@@ -117,7 +122,7 @@ export async function startLocalStack(o: LocalStackOptions): Promise<LocalStack>
   // Control endpoint (127.0.0.1 only): POST /say {"text": "..."}; GET /status
   const control = createServer((req, res) => {
     if (req.method === 'GET' && req.url === '/status') {
-      res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ hubId: o.hubId, clients: broker.connectedClients() }));
+      res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ hubId: o.hubId, iot: o.externalIot ? 'mosquitto-mqtt5' : 'aedes-mqtt311' }));
       return;
     }
     if (req.method === 'POST' && req.url === '/say') {

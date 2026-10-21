@@ -22,10 +22,19 @@ if [ ! -e "$STATE/hub-local.crt" ] || [ "$CSR" -nt "$STATE/hub-local.crt" ]; the
   "$STACK/scripts/local-ca.sh" sign "$CSR" "$STATE/hub-local.crt"
 fi
 
+# IoT Core emulator: Mosquitto (MQTT 5, like AWS) when Docker is usable, else the in-process aedes broker (3.1.1).
+if [ -z "${BROKER:-}" ]; then docker info >/dev/null 2>&1 && BROKER=mosquitto || BROKER=aedes; fi
+if [ "$BROKER" = mosquitto ]; then
+  "$STACK/scripts/iot-mosquitto.sh" up >/dev/null
+  IOT_PORT=8893; HUB_MQTT_PORT=8893; HUB_MQTT_VERSION=5; export IOT_PORT
+else
+  unset IOT_PORT; HUB_MQTT_PORT=$BROKER_PORT; HUB_MQTT_VERSION=4
+fi
+
 cat > "$STATE/hub.local.env" <<ENV
 IOT_ENDPOINT=localhost
-MQTT_PORT=$BROKER_PORT
-MQTT_PROTOCOL_VERSION=4
+MQTT_PORT=$HUB_MQTT_PORT
+MQTT_PROTOCOL_VERSION=$HUB_MQTT_VERSION
 HUB_ID=$HUB_ID
 AWS_REGION=eu-west-1
 CERT_FILE=$STATE/hub-local.crt
@@ -50,10 +59,10 @@ echo $! > "$STATE/pids/hub"
 wait_for "http://127.0.0.1:$HEALTH_PORT/ready" 20 || { echo "hub not ready; see $STATE/logs/hub.log"; tail -5 "$STATE/logs/hub.log"; exit 1; }
 
 cat > "$STATE/stack.json" <<JSON
-{"hubId":"$HUB_ID","ports":{"broker":$BROKER_PORT,"ddb":$DDB_PORT,"control":$CONTROL_PORT,"hubHealth":$HEALTH_PORT},"startedAt":"$(date -Is)"}
+{"hubId":"$HUB_ID","iot":"$BROKER","ports":{"broker":$HUB_MQTT_PORT,"ddb":$DDB_PORT,"control":$CONTROL_PORT,"hubHealth":$HEALTH_PORT},"startedAt":"$(date -Is)"}
 JSON
 echo "Hearth local stack is up (hubId=$HUB_ID, intent=${INTENT:-keyword}${OLLAMA_MODEL:+ $OLLAMA_MODEL}, reply timeout ${REPLY_TIMEOUT_MS} ms)"
-echo "  broker   mqtts://localhost:$BROKER_PORT   (IoT Core emulator, mTLS)"
+echo "  broker   mqtts://localhost:$HUB_MQTT_PORT   (IoT Core emulator: $BROKER, MQTT $HUB_MQTT_VERSION, mTLS)"
 echo "  dynamodb http://127.0.0.1:$DDB_PORT        (dynalite, table hearth-replies-local)"
 echo "  control  http://127.0.0.1:$CONTROL_PORT   (pnpm local:say \"...\")"
 echo "  hub      http://127.0.0.1:$HEALTH_PORT/health  /metrics"

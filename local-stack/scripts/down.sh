@@ -9,3 +9,7 @@ for p in hub stack; do
   rm -f "$f"
 done
 rm -f "$STATE/stack.json"
+# The Mosquitto IoT emulator (if it was used) stays cheap to keep, but stop it with the stack for a clean slate.
+if docker ps --format '{{.Names}}' 2>/dev/null | grep -q '^hearth-local-iot-iot-1$'; then
+  "$(dirname "$0")/iot-mosquitto.sh" down >/dev/null 2>&1 && echo "stopped local IoT (mosquitto)"
+fi

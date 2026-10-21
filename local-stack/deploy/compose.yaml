@@ -1,0 +1,11 @@
+# Local IoT Core emulator on Mosquitto: MQTT 5 + mutual TLS, ACL = the hub's IoT policy.
+# Prepared by scripts/iot-mosquitto.sh (certs from the local CA, generated ACL). 127.0.0.1 only.
+name: hearth-local-iot
+services:
+  iot:
+    image: eclipse-mosquitto:2.0.22@sha256:199ea8ef2e35ec2b1b37e59cfd1dbae538ed4dfa4a2251a121a52215a6248a21
+    network_mode: host
+    user: "${HOST_UID:?run via scripts/iot-mosquitto.sh}:${HOST_GID:?run via scripts/iot-mosquitto.sh}"
+    volumes:
+      - ./iot/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ../.state/iot:/mosquitto/secrets:ro

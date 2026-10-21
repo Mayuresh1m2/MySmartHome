@@ -20,7 +20,8 @@
     "test:py": "cd hearth-devices && uv run ruff check . && uv run pytest -q",
     "bus:up": "bash hearth-devices/scripts/bus.sh up",
     "bus:down": "bash hearth-devices/scripts/bus.sh down",
-    "test:mosquitto": "cd hearth-devices && HEARTH_TEST_BUS_PORT=1883 uv run pytest -q core/tests/test_phase1_acceptance.py core/tests/test_requests.py"
+    "test:mosquitto": "cd hearth-devices && HEARTH_TEST_BUS_PORT=1883 uv run pytest -q core/tests/test_phase1_acceptance.py core/tests/test_requests.py",
+    "test:iot": "bash local-stack/scripts/iot-mosquitto.sh up && cd hearth-hub && HEARTH_TEST_IOT_PORT=8893 pnpm vitest run test/relay.mqtt5.test.ts"
   },
   "devDependencies": {
     "tsx": "^4.23.15"
