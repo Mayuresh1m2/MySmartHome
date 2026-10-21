@@ -8,7 +8,7 @@ export const hubRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const Env = z.object({
   IOT_ENDPOINT: z.string().min(1),
   HUB_ID: z.string().regex(/^[a-z0-9-]+$/, 'lowercase letters, digits and hyphens').default('laptop'),
-  AWS_REGION: z.string().default('eu-west-1'),
+  AWS_REGION: z.string().default('ap-southeast-2'),
   MQTT_PORT: z.coerce.number().int().positive().default(8883),
   /** 5 for AWS IoT Core. local-stack's aedes broker only speaks 3.1.1, so it sets 4. */
   MQTT_PROTOCOL_VERSION: z.coerce.number().pipe(z.union([z.literal(4), z.literal(5)])).default(5),

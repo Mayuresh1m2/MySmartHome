@@ -8,7 +8,7 @@ Out of scope: anything that runs on my home network, device control, and the loc
 
 ## How a request flows
 
-1. "Alexa, ask home hearth to <command>" makes Alexa call the skill Lambda in `eu-west-1`.
+1. "Alexa, ask home hearth to <command>" makes Alexa call the skill Lambda in `ap-southeast-2`.
 2. The Lambda publishes the command to `hearth/<hubId>/commands` through the IoT Data Plane.
 3. The hub, connected outbound over MQTT with its certificate, runs it and publishes to `hearth/<hubId>/replies`.
 4. An IoT rule writes the reply into a DynamoDB table with a 5 minute TTL.
@@ -18,7 +18,7 @@ Out of scope: anything that runs on my home network, device control, and the loc
 
 This section is identical in hearth-aws and hearth-hub. Never change one side alone: bump `v`, then update both CLAUDE.md files and both implementations together.
 
-- Region: `eu-west-1`
+- Region: `ap-southeast-2`
 - `hubId`: lowercase letters, digits and hyphens; default `laptop`
 - MQTT client ID and IoT thing name: `hearth-<hubId>`
 - Topics: `hearth/<hubId>/commands` (cloud to hub) and `hearth/<hubId>/replies` (hub to cloud), QoS 1

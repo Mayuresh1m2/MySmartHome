@@ -1,6 +1,6 @@
 # Hearth AWS runbook
 
-Region `eu-west-1`, stack `Hearth-<hubId>`. Every command uses the AWS CLI's configured profile.
+Region `ap-southeast-2`, stack `Hearth-<hubId>`. Every command uses the AWS CLI's configured profile.
 Anything that deletes, replaces or deactivates something in AWS needs the owner's explicit go-ahead. Those steps are marked **⚠ ask first**.
 
 ## Daily health

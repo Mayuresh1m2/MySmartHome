@@ -8,7 +8,7 @@ import { HearthStack } from '../lib/hearth-stack.js';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ACCOUNT = '111122223333';
-const arn = (r: string) => `arn:aws:iot:eu-west-1:${ACCOUNT}:${r}`;
+const arn = (r: string) => `arn:aws:iot:ap-southeast-2:${ACCOUNT}:${r}`;
 let t: Template;
 
 type Statement = { Effect: string; Action: string | string[]; Resource: unknown };
@@ -17,7 +17,7 @@ const actionsOf = (s: Statement) => (Array.isArray(s.Action) ? s.Action : [s.Act
 beforeAll(() => {
   const config = loadConfig(projectRoot, 'config/example.json');
   const app = new App();
-  const stack = new HearthStack(app, 'Test', { config, projectRoot, env: { account: ACCOUNT, region: 'eu-west-1' } });
+  const stack = new HearthStack(app, 'Test', { config, projectRoot, env: { account: ACCOUNT, region: 'ap-southeast-2' } });
   t = Template.fromStack(stack);
 });
 

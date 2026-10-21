@@ -3,11 +3,11 @@ import { loadConfig } from '../src/config.js';
 
 describe('loadConfig', () => {
   it('derives client id and topics from HUB_ID', () => {
-    const c = loadConfig({ IOT_ENDPOINT: 'x.iot.eu-west-1.amazonaws.com', HUB_ID: 'kitchen-1' });
+    const c = loadConfig({ IOT_ENDPOINT: 'x.iot.ap-southeast-2.amazonaws.com', HUB_ID: 'kitchen-1' });
     expect(c.clientId).toBe('hearth-kitchen-1');
     expect(c.commandsTopic).toBe('hearth/kitchen-1/commands');
     expect(c.repliesTopic).toBe('hearth/kitchen-1/replies');
-    expect(c.AWS_REGION).toBe('eu-west-1');
+    expect(c.AWS_REGION).toBe('ap-southeast-2');
     expect(c.AUDIT_TEXT).toBe(true);
   });
   it('defaults hubId to laptop', () => {

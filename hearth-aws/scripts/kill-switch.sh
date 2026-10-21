@@ -13,7 +13,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CONFIG="${HEARTH_CONFIG:-$ROOT/config/local.json}"
-REGION=eu-west-1
+REGION=ap-southeast-2
 
 hub() { jq -er .hubId "$CONFIG"; }
 budget_of() { case "$1" in hearth) echo "hearth-$(hub)-killswitch" ;; account) echo "hearth-$(hub)-monthly" ;; *) echo "which switch: hearth|account" >&2; exit 2 ;; esac; }

@@ -19,14 +19,14 @@ Typically cents a month: on-demand DynamoDB, a few Lambda invocations, IoT messa
 | | |
 |---|---|
 | AWS account | an IAM identity able to deploy CloudFormation, IoT, Lambda, DynamoDB, IAM roles, SNS, CloudWatch and Budgets |
-| AWS CLI v2 | configured with a profile (`aws configure` or SSO). Credentials stay in the CLI; nothing here writes them to files |
+| AWS CLI v2 | signed in with a profile. New-experience accounts: `aws login --profile hearth --region ap-southeast-2` (temporary credentials from your console login, auto-refreshed). Classic accounts: `aws configure sso` or `aws configure`. Credentials stay in the CLI; nothing here writes them to files |
 | Amazon developer account | the same Amazon account your Echo uses, so the development skill shows up on your devices |
 | ASK CLI v2 | `npm i -g ask-cli`, then `ask configure`. **Check `ask --help` for exact syntax.** The commands below were written before they could be run here, and are confirmed at milestone M3 |
 | Node.js 22, pnpm | `corepack enable pnpm` |
 | openssl, jq | for the hub's key/CSR and the handoff script |
 | Your Echo's language | the skill locale must match it. This repo ships **en-IN** |
 
-Everything runs in **eu-west-1** (fixed by the hub contract).
+Everything runs in **ap-southeast-2 (Sydney)**, fixed by the hub contract. Why Sydney: accounts created through AWS's new sign-up experience get one region from the contact address, and **India maps to ap-southeast-2**, with no region selector ([AWS Regions for your projects](https://docs.aws.amazon.com/accounts/latest/reference/project-regions.html)). Amazon recommends eu-west-1 for Alexa EU/IN skills because Alexa serves those locales from Ireland. Sydney adds roughly 0.25 s per command, well inside the reply budget. With a classic account (or after activating advanced features) you could move back: change the contract region in both CLAUDE.md files, `contracts/cloud-hub/v1/constants.json` and here, together.
 
 ## Cost guard (kill switches)
 
@@ -62,7 +62,7 @@ scripts/make-csr.sh --hub-id laptop       # pick your hubId: lowercase letters, 
 cd hearth-aws
 pnpm install
 cp config/example.json config/local.json      # gitignored
-aws iot describe-endpoint --endpoint-type iot:Data-ATS --region eu-west-1 --query endpointAddress --output text
+aws iot describe-endpoint --endpoint-type iot:Data-ATS --region ap-southeast-2 --query endpointAddress --output text
 ```
 
 Edit `config/local.json`:
@@ -70,7 +70,7 @@ Edit `config/local.json`:
 | key | value |
 |---|---|
 | `hubId` | the same id as step 1 |
-| `iotEndpoint` | the output of the command above (`xxxx-ats.iot.eu-west-1.amazonaws.com`) |
+| `iotEndpoint` | the output of the command above (`xxxx-ats.iot.ap-southeast-2.amazonaws.com`) |
 | `csrPath` | the absolute path printed by `make-csr.sh` |
 | `budgetEmail` | where budget, kill-switch and alarm emails go |
 | `hearthKillSwitchUsd` / `accountKillSwitchUsd` | kill-switch limits, default 1 and 5 (see Cost guard) |
@@ -87,7 +87,7 @@ pnpm test && pnpm cdk synth
 ## 3. Bootstrap CDK (once per account and region)
 
 ```bash
-pnpm cdk bootstrap aws://<account-id>/eu-west-1
+pnpm cdk bootstrap aws://<account-id>/ap-southeast-2
 ```
 
 ## 4. Create the skill first, so its ID exists
@@ -121,9 +121,9 @@ Afterwards:
 - Optional check of the replies path:
 
   ```bash
-  aws iot-data publish --region eu-west-1 --topic "hearth/<hubId>/replies" --cli-binary-format raw-in-base64-out \
+  aws iot-data publish --region ap-southeast-2 --topic "hearth/<hubId>/replies" --cli-binary-format raw-in-base64-out \
     --payload '{"v":1,"requestId":"00000000-0000-4000-8000-000000000000","speech":"test","status":"ok"}'
-  aws dynamodb get-item --region eu-west-1 --table-name <RepliesTableName output> \
+  aws dynamodb get-item --region ap-southeast-2 --table-name <RepliesTableName output> \
     --key '{"requestId":{"S":"00000000-0000-4000-8000-000000000000"}}'
   ```
 
@@ -132,7 +132,7 @@ Afterwards:
 Take `SkillFunctionArn` from the stack outputs. Put it in a **local copy** of the manifest, so no ARN gets committed:
 
 ```bash
-ARN=$(aws cloudformation describe-stacks --region eu-west-1 --stack-name Hearth-<hubId> \
+ARN=$(aws cloudformation describe-stacks --region ap-southeast-2 --stack-name Hearth-<hubId> \
   --query "Stacks[0].Outputs[?OutputKey=='SkillFunctionArn'].OutputValue" --output text)
 mkdir -p .ask && jq --arg arn "$ARN" '.manifest.apis.custom.endpoint.uri = $arn' skill-package/skill.json > .ask/skill.json
 ask smapi update-skill-manifest --skill-id <skillId> --stage development --manifest "file:.ask/skill.json"

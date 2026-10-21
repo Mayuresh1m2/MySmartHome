@@ -54,7 +54,7 @@ export async function startLocalStack(o: LocalStackOptions): Promise<LocalStack>
   const ddbServer: Server = dynalite({ createTableMs: 0 });
   await new Promise<void>((r) => ddbServer.listen(o.ddbPort ?? 0, '127.0.0.1', () => r()));
   const ddbPort = (ddbServer.address() as { port: number }).port;
-  const ddb = new DynamoDBClient({ endpoint: `http://127.0.0.1:${ddbPort}`, region: 'eu-west-1', credentials: { accessKeyId: 'local', secretAccessKey: 'local' } });
+  const ddb = new DynamoDBClient({ endpoint: `http://127.0.0.1:${ddbPort}`, region: 'ap-southeast-2', credentials: { accessKeyId: 'local', secretAccessKey: 'local' } });
   await ddb.send(
     new CreateTableCommand({
       TableName: TABLE,

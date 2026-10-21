@@ -20,7 +20,7 @@ function setup(opts: { endpoint?: string; pem?: string; certOutput?: string } = 
 echo "$*" >> ${log}
 case "$1 $2" in
   "cloudformation describe-stacks") echo "${opts.certOutput ?? 'abcdef0123456789'}" ;;
-  "iot describe-endpoint") echo "${opts.endpoint ?? 'abc123-ats.iot.eu-west-1.amazonaws.com'}" ;;
+  "iot describe-endpoint") echo "${opts.endpoint ?? 'abc123-ats.iot.ap-southeast-2.amazonaws.com'}" ;;
   "iot describe-certificate") echo '${desc}' ;;
   *) echo "unexpected: $*" >&2; exit 9 ;;
 esac
@@ -28,7 +28,7 @@ esac
   );
   chmodSync(join(bin, 'aws'), 0o755);
   const config = join(dir, 'local.json');
-  writeFileSync(config, JSON.stringify({ hubId: 'laptop', iotEndpoint: 'abc123-ats.iot.eu-west-1.amazonaws.com' }));
+  writeFileSync(config, JSON.stringify({ hubId: 'laptop', iotEndpoint: 'abc123-ats.iot.ap-southeast-2.amazonaws.com' }));
   const out = join(dir, 'out');
   const run = (...args: string[]) =>
     spawnSync('bash', [script, ...args], { env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, HEARTH_CONFIG: config, OUT_DIR: out }, encoding: 'utf8' });
@@ -41,10 +41,10 @@ describe('scripts/handoff.sh', () => {
     const r = s.run();
     expect(r.status, r.stderr).toBe(0);
     expect(readFileSync(join(s.out, 'hub.crt'), 'utf8').trim()).toBe(PEM);
-    expect(readFileSync(join(s.out, 'hub.env'), 'utf8')).toBe('IOT_ENDPOINT=abc123-ats.iot.eu-west-1.amazonaws.com\nHUB_ID=laptop\nAWS_REGION=eu-west-1\n');
+    expect(readFileSync(join(s.out, 'hub.env'), 'utf8')).toBe('IOT_ENDPOINT=abc123-ats.iot.ap-southeast-2.amazonaws.com\nHUB_ID=laptop\nAWS_REGION=ap-southeast-2\n');
     const calls = readFileSync(s.log, 'utf8');
     expect(calls).toContain("OutputKey=='HubCertificateId'");
-    expect(calls).toContain('--region eu-west-1');
+    expect(calls).toContain('--region ap-southeast-2');
     expect(calls).not.toMatch(/create-keys|create-certificate|update-certificate|delete/);
   });
 
@@ -56,7 +56,7 @@ describe('scripts/handoff.sh', () => {
   });
 
   it('refuses when the account endpoint differs from config', () => {
-    const r = setup({ endpoint: 'other-ats.iot.eu-west-1.amazonaws.com' }).run();
+    const r = setup({ endpoint: 'other-ats.iot.ap-southeast-2.amazonaws.com' }).run();
     expect(r.status).not.toBe(0);
     expect(r.stderr).toMatch(/differs/);
   });

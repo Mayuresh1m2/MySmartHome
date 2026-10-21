@@ -8,7 +8,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CONFIG="${HEARTH_CONFIG:-$ROOT/config/local.json}"
 OUT="${OUT_DIR:-$ROOT/out}"
-REGION=eu-west-1
+REGION=ap-southeast-2
 NAME="${1:-primary}"
 
 command -v aws >/dev/null || { echo "aws CLI not found" >&2; exit 1; }

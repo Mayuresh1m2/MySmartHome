@@ -13,7 +13,7 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const base = loadConfig(projectRoot, 'config/example.json');
 let n = 0;
 const synth = (over: Partial<HearthConfig> = {}) =>
-  Template.fromStack(new HearthStack(new App(), `K${n++}`, { config: { ...base, ...over }, projectRoot, env: { account: '111122223333', region: 'eu-west-1' } }));
+  Template.fromStack(new HearthStack(new App(), `K${n++}`, { config: { ...base, ...over }, projectRoot, env: { account: '111122223333', region: 'ap-southeast-2' } }));
 
 describe('kill switch', () => {
   const t = synth();

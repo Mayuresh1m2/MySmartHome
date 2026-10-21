@@ -7,7 +7,7 @@ import { loadConfig } from '../lib/config.js';
 const root = join(import.meta.dirname, '..');
 function withConfig(over: Record<string, unknown>) {
   const dir = mkdtempSync(join(tmpdir(), 'hearth-cfg-'));
-  const base = JSON.parse(JSON.stringify({ hubId: 'laptop', skillId: 'amzn1.ask.skill.x', iotEndpoint: 'abc123-ats.iot.eu-west-1.amazonaws.com', csrPath: join(root, 'test/fixtures/example.csr'), budgetEmail: 'a@b.co' }));
+  const base = JSON.parse(JSON.stringify({ hubId: 'laptop', skillId: 'amzn1.ask.skill.x', iotEndpoint: 'abc123-ats.iot.ap-southeast-2.amazonaws.com', csrPath: join(root, 'test/fixtures/example.csr'), budgetEmail: 'a@b.co' }));
   writeFileSync(join(dir, 'c.json'), JSON.stringify({ ...base, ...over }));
   return () => loadConfig(dir, 'c.json');
 }
