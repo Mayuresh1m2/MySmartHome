@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hearth.local/contracts/local-devices/v1/response.schema.json",
+  "title": "Core's answer to a request, topic hearth/local/core/response/<clientId>. Same shape as result.",
+  "type": "object",
+  "required": ["v", "requestId", "ok", "error", "state"],
+  "properties": {
+    "v": { "const": 1 },
+    "requestId": { "type": "string", "minLength": 1 },
+    "ok": { "type": "boolean" },
+    "error": { "type": ["string", "null"] },
+    "state": { "type": "object" }
+  }
+}

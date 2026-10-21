@@ -16,7 +16,7 @@ class KitAdapter implements Adapter {
   async discover(): Promise<DeviceMeta[]> {
     return [
       {
-        v: 0, id: 'ts-lamp', name: 'TS lamp', room: 'lab', kind: 'light', adapter: 'kit',
+        v: 1, id: 'ts-lamp', name: 'TS lamp', room: 'lab', kind: 'light', adapter: 'kit',
         capabilities: [
           { name: 'OnOff', risk: 'low', params: { type: 'object', properties: { on: { type: 'boolean' } }, required: ['on'] } },
           { name: 'Refuse', risk: 'low', params: {} },
@@ -45,7 +45,7 @@ const waitFor = async (pred: () => unknown, ms = 5000) => {
 };
 const resultFor = (id: string) => seen.find((m) => m.topic === `${LAMP}/result` && (m.body as { requestId?: string }).requestId === id)?.body as Record<string, unknown> | undefined;
 const send = (body: unknown) => core.publishAsync(`${LAMP}/set`, typeof body === 'string' ? body : JSON.stringify(body), { qos: 1 });
-const cmd = (requestId: string, capability = 'OnOff', params: Record<string, unknown> = {}) => ({ v: 0, requestId, capability, action: 'set', params });
+const cmd = (requestId: string, capability = 'OnOff', params: Record<string, unknown> = {}) => ({ v: 1, requestId, capability, action: 'set', params });
 
 let runner: AdapterRunner;
 beforeAll(async () => {
@@ -89,7 +89,7 @@ describe('TS AdapterRunner', () => {
     ['t-high', cmd('t-high', 'DoorLock'), 'high-risk capability is disabled'],
     ['t-refuse', cmd('t-refuse', 'Refuse'), 'lamp refused'],
     ['t-crash', cmd('t-crash', 'Crash'), 'adapter error'],
-    ['t-badv', { ...cmd('t-badv'), v: 1 }, 'invalid command'],
+    ['t-badv', { ...cmd('t-badv'), v: 2 }, 'invalid command'],
   ])('%s becomes a failed result', async (id, body, error) => {
     await send(body);
     await waitFor(() => resultFor(id));

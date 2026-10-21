@@ -32,7 +32,7 @@ async def send(client, payload, device="kit-lamp"):
 
 
 def cmd(request_id, capability="OnOff", params=None, action="set"):
-    return {"v": 0, "requestId": request_id, "capability": capability, "action": action, "params": params or {}}
+    return {"v": 1, "requestId": request_id, "capability": capability, "action": action, "params": params or {}}
 
 
 async def test_announces_status_meta_and_state(observer, running):
@@ -64,7 +64,7 @@ async def test_set_publishes_result_and_state(observer, running):
         ("r-high", cmd("r-high", capability="DoorLock"), "high-risk capability is disabled"),
         ("r-cmderr", cmd("r-cmderr", capability="Explode"), "lamp refused"),
         ("r-crash", cmd("r-crash", capability="Crash"), "adapter error"),
-        ("r-badv", {**cmd("r-badv"), "v": 1}, "invalid command"),
+        ("r-badv", {**cmd("r-badv"), "v": 2}, "invalid command"),
     ],
 )
 async def test_rejections_become_failed_results(observer, running, request_id, command, error):

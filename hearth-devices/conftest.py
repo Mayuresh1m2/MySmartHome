@@ -14,7 +14,7 @@ import aiomqtt
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-USERS = {"core": "c0re", "adapter-testkit": "t3st", "adapter-other": "0ther", "adapter-fake": "f4ke"}
+USERS = {"core": "c0re", "adapter-testkit": "t3st", "adapter-other": "0ther", "adapter-fake": "f4ke", "hub": "hu8"}
 
 
 @pytest.fixture(scope="session")

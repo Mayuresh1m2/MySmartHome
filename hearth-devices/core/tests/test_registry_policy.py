@@ -4,7 +4,7 @@ import pytest
 from hearth_devices_core import Policy, PolicyFile, Registry, is_idle
 
 META = {
-    "v": 0,
+    "v": 1,
     "id": "vac",
     "name": "Vacuum",
     "room": "hall",
@@ -24,7 +24,7 @@ def feed(reg: Registry, state: dict | None = None, status: str = "online") -> Re
     reg.apply("hearth/local/devices/vac/meta", json.dumps(META).encode())
     reg.apply(
         "hearth/local/devices/vac/state",
-        json.dumps({"v": 0, "online": True, "updatedAt": 1, **(state or {})}).encode(),
+        json.dumps({"v": 1, "online": True, "updatedAt": 1, **(state or {})}).encode(),
     )
     return reg
 
@@ -43,7 +43,7 @@ def test_adapter_offline_takes_its_devices_offline():
 
 def test_contract_violations_never_enter_the_registry():
     reg = Registry()
-    assert reg.apply("hearth/local/devices/x/meta", b'{"v":0,"id":"x"}') is None
+    assert reg.apply("hearth/local/devices/x/meta", b'{"v":1,"id":"x"}') is None
     assert reg.apply("hearth/local/devices/x/meta", b"garbage") is None
     other = {**META, "id": "someone-else"}
     assert reg.apply("hearth/local/devices/vac/meta", json.dumps(other).encode()) is None  # id/topic mismatch
@@ -113,3 +113,15 @@ def test_shipped_policy_loads():
 
     p = Policy.load(Path(__file__).resolve().parents[2] / "config" / "policy.yaml")
     assert p.file.defaults["medium"] == "allow"
+
+
+def test_live_state_proves_the_adapter_online_even_after_a_stale_retained_offline():
+    reg = feed(Registry(), status="offline")
+    assert reg.get("vac").online is False
+    state = json.dumps({"v": 1, "online": True, "updatedAt": 2}).encode()
+    reg.apply("hearth/local/devices/vac/state", state, retained=True)  # retained: says nothing about now
+    assert reg.get("vac").online is False
+    reg.apply("hearth/local/devices/vac/state", state, retained=False)  # live: the adapter is connected
+    assert reg.adapters["fake"] == "online" and reg.get("vac").online is True
+    reg.apply("hearth/local/adapters/fake/status", b"offline")  # its will later still wins
+    assert reg.get("vac").online is False

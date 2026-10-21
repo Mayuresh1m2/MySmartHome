@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import json
 import os
+import signal
 from pathlib import Path
 
 from .audit import AuditLog
@@ -39,6 +40,13 @@ async def _main(args: argparse.Namespace) -> int:
             r = await core.execute(args.device, args.capability, args.action, json.loads(args.params), via="local")
             print(json.dumps(r, indent=2))
             code = 0 if r["ok"] else 1
+        elif args.cmd == "serve":
+            core.log.info("core serving", extra={"host": core.settings.host, "port": core.settings.port})
+            loop = asyncio.get_running_loop()
+            done = asyncio.Event()
+            for sig in (signal.SIGINT, signal.SIGTERM):
+                loop.add_signal_handler(sig, done.set)
+            await done.wait()
         elif args.cmd == "watch":
             while True:
                 device_id, what = await core.changes.get()
@@ -60,4 +68,5 @@ def main() -> None:
     s.add_argument("action")
     s.add_argument("params", nargs="?", default="{}")
     sub.add_parser("watch", help="stream registry changes")
+    sub.add_parser("serve", help="run core: registry snapshot + request handling (policy and audit)")
     raise SystemExit(asyncio.run(_main(p.parse_args())))

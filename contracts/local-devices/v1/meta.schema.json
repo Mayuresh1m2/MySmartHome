@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://hearth.local/contracts/local-devices/v0/meta.schema.json",
+  "$id": "https://hearth.local/contracts/local-devices/v1/meta.schema.json",
   "title": "Device meta, retained, topic hearth/local/devices/<deviceId>/meta",
   "type": "object",
   "required": ["v", "id", "name", "room", "kind", "adapter", "capabilities"],
   "properties": {
-    "v": { "const": 0 },
+    "v": { "const": 1 },
     "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
     "name": { "type": "string", "minLength": 1 },
     "room": { "type": "string" },

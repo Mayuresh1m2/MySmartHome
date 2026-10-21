@@ -164,7 +164,7 @@ export class AdapterRunner {
   }
 
   private async result(deviceId: string, requestId: string, ok: boolean, error: string | null, state?: Record<string, unknown>): Promise<Result> {
-    const doc: Result = { v: 0, requestId, ok, error, state: state ?? (await this.publishState(deviceId)) };
+    const doc: Result = { v: 1, requestId, ok, error, state: state ?? (await this.publishState(deviceId)) };
     validate('result', doc);
     await this.client!.publishAsync(deviceTopic(deviceId, 'result'), JSON.stringify(doc), { qos: 1 });
     this.log('info', 'command handled', { deviceId, requestId, ok, error });

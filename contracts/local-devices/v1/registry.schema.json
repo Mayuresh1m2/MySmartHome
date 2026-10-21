@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hearth.local/contracts/local-devices/v1/registry.schema.json",
+  "title": "Registry snapshot, retained, published by core on hearth/local/core/registry",
+  "type": "object",
+  "required": ["v", "updatedAt", "devices"],
+  "properties": {
+    "v": { "const": 1 },
+    "updatedAt": { "type": "integer", "minimum": 0 },
+    "devices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "room", "kind", "adapter", "online", "capabilities", "state"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+          "name": { "type": "string", "minLength": 1 },
+          "room": { "type": "string" },
+          "kind": { "type": "string" },
+          "adapter": { "type": "string" },
+          "online": { "type": "boolean" },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "risk", "params"],
+              "properties": {
+                "name": { "type": "string", "minLength": 1 },
+                "risk": { "enum": ["read", "low", "medium", "high"] },
+                "params": { "type": "object" }
+              }
+            }
+          },
+          "state": { "type": "object" }
+        }
+      }
+    }
+  }
+}

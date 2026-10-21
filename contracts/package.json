@@ -7,7 +7,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./cloud-hub/v1/*": "./cloud-hub/v1/*",
-    "./local-devices/v0/*": "./local-devices/v0/*"
+    "./local-devices/v1/*": "./local-devices/v1/*"
   },
   "scripts": {
     "test": "vitest run",

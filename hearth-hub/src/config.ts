@@ -27,6 +27,11 @@ const Env = z.object({
   AUDIT_TEXT: z.stringbool().default(true),
   POLICY_FILE: z.string().default(join(hubRoot, 'config', 'policy.yaml')),
   DEVICES_FILE: z.string().default(join(hubRoot, 'config', 'devices.json')),
+  /** json: static config/devices.json. mqtt: the hearth-devices platform through its core (local contract v1). */
+  DEVICES: z.enum(['json', 'mqtt']).default('json'),
+  DEVICES_BUS_URL: z.string().default('mqtt://127.0.0.1:1883'),
+  DEVICES_BUS_USER: z.string().default('hub'),
+  DEVICES_BUS_PASSWORD: z.string().optional(),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 });
 

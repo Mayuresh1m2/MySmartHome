@@ -40,8 +40,13 @@ class Registry:
         self.adapters: dict[str, str] = {}
         self.rejected = 0
 
-    def apply(self, topic: str, payload: bytes) -> str | None:
-        """Feeds one bus message. Returns what changed ("meta", "state", "status") or None if ignored."""
+    def apply(self, topic: str, payload: bytes, retained: bool = True) -> str | None:
+        """Feeds one bus message. Returns what changed ("meta", "state", "status") or None if ignored.
+
+        `retained` is False for messages delivered live. A live meta/state can only come from a connected adapter
+        (its will is published only once the connection is gone), so it proves the adapter online even when the
+        retained status we saw is stale; aedes, for one, can hand a new subscriber an outdated retained status.
+        """
         parts = topic.split("/")
         if parts[:2] != ["hearth", "local"] or len(parts) != 5:
             return None
@@ -82,6 +87,13 @@ class Registry:
             if view is None:
                 return None  # state before meta: wait for meta (both are retained)
             view.state = doc
+        if not retained:
+            adapter = self.devices[device_id].meta.adapter
+            if self.adapters.get(adapter) != "online":
+                self.adapters[adapter] = "online"
+                for d in self.devices.values():
+                    if d.meta.adapter == adapter:
+                        d.adapter_online = True
         return kind
 
     def get(self, device_id: str) -> DeviceView | None:
@@ -89,3 +101,13 @@ class Registry:
 
     def list(self) -> list[dict[str, Any]]:
         return [d.summary() for d in sorted(self.devices.values(), key=lambda d: d.meta.id)]
+
+    def snapshot(self, updated_at: int) -> dict[str, Any]:
+        """The retained hearth/local/core/registry document (contract v1), capabilities with their params."""
+        devices = []
+        for d in sorted(self.devices.values(), key=lambda d: d.meta.id):
+            s = d.summary()
+            s["capabilities"] = [c.model_dump() for c in d.meta.capabilities]
+            s["state"] = {k: v for k, v in d.state.items() if k not in ("v", "online", "updatedAt")}
+            devices.append(s)
+        return {"v": 1, "updatedAt": updated_at, "devices": devices}

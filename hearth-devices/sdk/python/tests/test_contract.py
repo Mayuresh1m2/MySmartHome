@@ -26,7 +26,7 @@ def test_invalid_fixtures_fail_schema(path):
 def test_state_payload_shape_and_reserved_keys():
     doc = state_payload(True, {"on": True})
     validate("state", doc)
-    assert doc["v"] == 0 and doc["online"] is True and isinstance(doc["updatedAt"], int)
+    assert doc["v"] == 1 and doc["online"] is True and isinstance(doc["updatedAt"], int)
     with pytest.raises(ValueError, match="reserved"):
         state_payload(True, {"online": False})
 

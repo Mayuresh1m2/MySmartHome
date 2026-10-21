@@ -1,1 +1,0 @@
-{"v":0,"id":"fake-lamp","name":"Fake lamp","room":"lab","kind":"light","adapter":"fake","capabilities":[{"name":"OnOff","params":{"type":"object","properties":{"on":{"type":"boolean"}}},"risk":"low"},{"name":"OnOffState","params":{},"risk":"read"}]}

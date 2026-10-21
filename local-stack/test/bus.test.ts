@@ -14,9 +14,25 @@ describe('bus ACL rules', () => {
     expect(canPublish('adapter-fake', 'hearth/local/adapters/tv/status')).toBe(false);
     expect(canPublish('adapter-fake', 'hearth/local/devices/lamp/set')).toBe(false);
   });
+  it('hub can only ask core, never send set or read device topics directly', () => {
+    expect(canPublish('hub', 'hearth/local/core/request/hub')).toBe(true);
+    expect(canPublish('hub', 'hearth/local/core/request/other')).toBe(false);
+    expect(canPublish('hub', 'hearth/local/devices/lamp/set')).toBe(false);
+    expect(canPublish('hub', 'hearth/local/core/registry')).toBe(false);
+    expect(canSubscribe('hub', 'hearth/local/core/response/hub')).toBe(true);
+    expect(canSubscribe('hub', 'hearth/local/core/registry')).toBe(true);
+    expect(canSubscribe('hub', 'hearth/local/#')).toBe(false);
+    expect(canSubscribe('hub', 'hearth/local/core/request/hub')).toBe(false);
+  });
+  it('core publishes the registry and responses', () => {
+    expect(canPublish('core', 'hearth/local/core/registry')).toBe(true);
+    expect(canPublish('core', 'hearth/local/core/response/hub')).toBe(true);
+    expect(canPublish('core', 'hearth/local/core/request/hub')).toBe(false);
+  });
   it('core sends set only and may read everything', () => {
     expect(canPublish('core', 'hearth/local/devices/lamp/set')).toBe(true);
     expect(canPublish('core', 'hearth/local/devices/lamp/state')).toBe(false);
+    expect(canPublish('core', 'hearth/local/adapters/fake/status')).toBe(false);
     expect(canSubscribe('core', 'hearth/local/#')).toBe(true);
     expect(canSubscribe('adapter-fake', 'hearth/local/#')).toBe(false);
     expect(canSubscribe('adapter-fake', 'hearth/local/devices/+/set')).toBe(true);

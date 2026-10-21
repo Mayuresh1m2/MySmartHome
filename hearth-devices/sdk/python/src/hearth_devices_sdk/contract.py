@@ -1,4 +1,4 @@
-"""Local device contract v0 (contracts/local-devices/v0): topics, models and JSON Schema validation."""
+"""Local device contract v1 (contracts/local-devices/v1): topics, models and JSON Schema validation."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from typing import Any, Literal
 import jsonschema
 from pydantic import BaseModel, ConfigDict, Field
 
-V = 0
+V = 1
 ROOT = "hearth/local"
 Risk = Literal["read", "low", "medium", "high"]
 RISK_ORDER: dict[str, int] = {"read": 0, "low": 1, "medium": 2, "high": 3}
@@ -28,6 +28,16 @@ def adapter_status_topic(adapter_id: str) -> str:
 
 
 SET_FILTER = f"{ROOT}/devices/+/set"
+REGISTRY_TOPIC = f"{ROOT}/core/registry"
+REQUEST_FILTER = f"{ROOT}/core/request/+"
+
+
+def request_topic(client_id: str) -> str:
+    return f"{ROOT}/core/request/{client_id}"
+
+
+def response_topic(client_id: str) -> str:
+    return f"{ROOT}/core/response/{client_id}"
 
 
 class Capability(BaseModel):
@@ -39,7 +49,7 @@ class Capability(BaseModel):
 
 class DeviceMeta(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    v: Literal[0] = V
+    v: Literal[1] = V
     id: str = Field(pattern=ID_PATTERN)
     name: str = Field(min_length=1)
     room: str = ""
@@ -52,7 +62,7 @@ class DeviceMeta(BaseModel):
 
 
 class SetCommand(BaseModel):
-    v: Literal[0]
+    v: Literal[1]
     requestId: str = Field(min_length=1)
     capability: str = Field(min_length=1)
     action: str = Field(min_length=1)
@@ -60,7 +70,7 @@ class SetCommand(BaseModel):
 
 
 class Result(BaseModel):
-    v: Literal[0] = V
+    v: Literal[1] = V
     requestId: str
     ok: bool
     error: str | None
@@ -83,7 +93,7 @@ def contracts_dir() -> Path:
     if env:
         return Path(env)
     # Monorepo layout: hearth-devices/sdk/python/src/hearth_devices_sdk/contract.py → <repo>/contracts
-    return Path(__file__).resolve().parents[5] / "contracts" / "local-devices" / "v0"
+    return Path(__file__).resolve().parents[5] / "contracts" / "local-devices" / "v1"
 
 
 @cache
@@ -92,6 +102,6 @@ def _validator(kind: str) -> jsonschema.Draft202012Validator:
     return jsonschema.Draft202012Validator(schema)
 
 
-def validate(kind: Literal["meta", "state", "set", "result"], doc: Any) -> None:
+def validate(kind: Literal["meta", "state", "set", "result", "registry", "request", "response"], doc: Any) -> None:
     """Raises jsonschema.ValidationError if doc breaks the shared contract."""
     _validator(kind).validate(doc)

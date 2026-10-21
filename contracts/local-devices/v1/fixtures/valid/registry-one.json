@@ -1,0 +1,1 @@
+{"v":1,"updatedAt":1792540800000,"devices":[{"id":"fake-lamp","name":"Fake lamp","room":"lab","kind":"light","adapter":"fake","online":true,"capabilities":[{"name":"OnOff","risk":"low","params":{"type":"object"}}],"state":{"on":false}}]}

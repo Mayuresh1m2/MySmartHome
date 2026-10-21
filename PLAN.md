@@ -119,7 +119,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 
 ### Phase F — Hub gateway seam (hearth-hub M5)
 - [x] F1 `DeviceGateway` interface, `devices.json` impl, fake gateway, device tools generated from capabilities and filtered by policy; test that swapping gateway needs no intent/tools change
-- [!] F2 MQTT gateway against hearth-devices local contract (devices Phase 4) — needs decision: route hub commands through devices core (adds request topics = contract change) vs hub as its own bus client
+- [x] F2 MQTT gateway via devices core (local contract v1: registry snapshot + request/response; hub = voice) — cross-language integration test green
 
 ### Phase G — Go to the cloud — needs G3/G4/G9
 - [!] G1' AWS CLI + profile, `cdk bootstrap`; `config/local.json`

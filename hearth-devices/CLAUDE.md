@@ -41,13 +41,20 @@ Record the class, the evidence and the risks in `docs/devices/<device>.md`.
 - Matter devices: commission them to a Matter controller on the hub (python-matter-server or the matter.js controller) using multi-admin, alongside Alexa. That controller is wrapped as one adapter.
 - Capability names follow Matter clusters where one fits (OnOff, LevelControl, MediaPlayback, RvcRunMode, RvcCleanMode, RvcOperationalState, ServiceArea, OperationalState, DoorLock), so the hub's Matter bridge can map them later.
 
-## Local contract v0
+## Local contract v1
 
-- `hearth/local/devices/<deviceId>/meta` (retained): `{"v":0,"id","name","room","kind","adapter","capabilities":[{"name","params":<JSON Schema>,"risk":"read|low|medium|high"}]}`
-- `hearth/local/devices/<deviceId>/state` (retained): `{"v":0,"online":true,"updatedAt":<epoch ms>, ...capability values}`
-- `hearth/local/devices/<deviceId>/set`: `{"v":0,"requestId","capability","action","params"}`
-- `hearth/local/devices/<deviceId>/result`: `{"v":0,"requestId","ok":true,"error":null,"state":{...}}`
+- `hearth/local/devices/<deviceId>/meta` (retained): `{"v":1,"id","name","room","kind","adapter","capabilities":[{"name","params":<JSON Schema>,"risk":"read|low|medium|high"}]}`
+- `hearth/local/devices/<deviceId>/state` (retained): `{"v":1,"online":true,"updatedAt":<epoch ms>, ...capability values}`
+- `hearth/local/devices/<deviceId>/set`: `{"v":1,"requestId","capability","action","params"}` (published only by core)
+- `hearth/local/devices/<deviceId>/result`: `{"v":1,"requestId","ok":true,"error":null,"state":{...}}`
 - `hearth/local/adapters/<adapterId>/status` (retained, set by last will): `online` or `offline`
+- `hearth/local/core/registry` (retained, published by core): `{"v":1,"updatedAt","devices":[{"id","name","room","kind","adapter","online","capabilities":[...],"state":{...}}]}`
+- `hearth/local/core/request/<clientId>`: `{"v":1,"requestId","deviceId","capability","action","params"}`. Core applies policy and audit, then sends `set`. The client's trust level comes from the topic, never the payload: `hub` is the voice path.
+- `hearth/local/core/response/<clientId>`: same shape as `result`.
+
+Bus identities: `adapter-<id>` (publishes its devices' meta/state/result and its own status; receives set), `core` (reads everything; publishes set, registry and responses), `hub` (publishes only `core/request/hub`; reads `core/response/hub` and `core/registry`).
+
+v1 (2026-10-21) added the three `core/*` topics so the hub reaches devices only through core's policy and audit. Schemas and fixtures: `contracts/local-devices/v1`.
 
 To change the contract, bump `v` and update hearth-hub's `DeviceGateway` in the same change.
 

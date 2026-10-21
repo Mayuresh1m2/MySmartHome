@@ -1,1 +1,0 @@
-{"v":0,"id":"fake-lamp","name":"Fake lamp","room":"lab","kind":"light","adapter":"fake","capabilities":[{"name":"OnOff","params":{},"risk":"extreme"}]}

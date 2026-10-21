@@ -23,3 +23,4 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 16 | [16-hub-eval-harness.md](16-hub-eval-harness.md) | D3 | harness done; model run waits for G2 |
 | 17 | [17-readmes.md](17-readmes.md) | H3 | done; ASK commands confirmed at M3 |
 | 18 | [18-ollama-qwen-eval.md](18-ollama-qwen-eval.md) | D1 (G2) | qwen2.5:3b evaluated; latency target missed, decision pending |
+| 19 | [19-local-contract-v1-hub-via-core.md](19-local-contract-v1-hub-via-core.md) | F2 | done |

@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://hearth.local/contracts/local-devices/v0/set.schema.json",
+  "$id": "https://hearth.local/contracts/local-devices/v1/set.schema.json",
   "title": "Device command, topic hearth/local/devices/<deviceId>/set",
   "type": "object",
   "required": ["v", "requestId", "capability", "action", "params"],
   "properties": {
-    "v": { "const": 0 },
+    "v": { "const": 1 },
     "requestId": { "type": "string", "minLength": 1 },
     "capability": { "type": "string", "minLength": 1 },
     "action": { "type": "string", "minLength": 1 },

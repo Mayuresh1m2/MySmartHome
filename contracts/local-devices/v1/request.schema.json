@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hearth.local/contracts/local-devices/v1/request.schema.json",
+  "title": "Command request to core, topic hearth/local/core/request/<clientId>. Core applies policy and audit, then sends set.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "requestId", "deviceId", "capability", "action", "params"],
+  "properties": {
+    "v": { "const": 1 },
+    "requestId": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "deviceId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "capability": { "type": "string", "minLength": 1 },
+    "action": { "type": "string", "minLength": 1 },
+    "params": { "type": "object" }
+  }
+}

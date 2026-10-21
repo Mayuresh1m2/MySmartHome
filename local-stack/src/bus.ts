@@ -7,7 +7,10 @@ import { Aedes } from 'aedes';
  * Mirrors what mosquitto.conf + passwd + acl will enforce:
  *   - 127.0.0.1 only, password auth, no anonymous clients
  *   - adapter-<id>: publish hearth/local/devices/+/{meta,state,result} and its own adapters/<id>/status; subscribe devices/+/set
- *   - core (hub, registry): subscribe hearth/local/#; publish devices/+/set only
+ *   - core (registry, policy, audit): subscribe hearth/local/#; publish devices/+/set, the retained
+ *     core/registry snapshot and core/response/<client>
+ *   - hub: publish only core/request/hub; subscribe core/response/hub and core/registry. It can never send
+ *     `set` itself, so every device command passes core policy and audit (local contract v1)
  * Plain TCP like a localhost Mosquitto listener; aedes speaks MQTT 3.1.1.
  */
 export interface BusOptions {
@@ -38,7 +41,10 @@ export function topicMatches(filter: string, topic: string): boolean {
 }
 
 export function canPublish(user: string, topic: string): boolean {
-  if (user === 'core') return topicMatches(`${DEV}+/set`, topic);
+  if (user === 'core') {
+    return topicMatches(`${DEV}+/set`, topic) || topic === 'hearth/local/core/registry' || topicMatches('hearth/local/core/response/+', topic);
+  }
+  if (user === 'hub') return topic === 'hearth/local/core/request/hub';
   const m = /^adapter-([a-z0-9-]+)$/.exec(user);
   if (!m) return false;
   return (
@@ -49,6 +55,7 @@ export function canPublish(user: string, topic: string): boolean {
 
 export function canSubscribe(user: string, filter: string): boolean {
   if (user === 'core') return filter === 'hearth/local/#' || filter.startsWith('hearth/local/');
+  if (user === 'hub') return filter === 'hearth/local/core/response/hub' || filter === 'hearth/local/core/registry';
   if (/^adapter-[a-z0-9-]+$/.test(user)) return filter === `${DEV}+/set` || (filter.startsWith(DEV) && filter.endsWith('/set') && !filter.includes('#'));
   return false;
 }

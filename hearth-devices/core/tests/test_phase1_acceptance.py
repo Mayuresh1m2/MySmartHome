@@ -59,7 +59,7 @@ async def test_fake_adapter_end_to_end(core, fake_adapter):
     assert r["ok"] is True
     await core.wait_for(lambda reg: reg.get("fake-vacuum").state.get("operationalState") == "running")
     r = await core.execute("fake-vacuum", "RvcRunMode", "set", {"mode": "cleaning"}, via="voice")
-    assert r == {"v": 0, "requestId": r["requestId"], "ok": False, "error": "policy: device is busy", "state": {}}
+    assert r == {"v": 1, "requestId": r["requestId"], "ok": False, "error": "policy: device is busy", "state": {}}
 
     # high: refused by policy; the adapter never sees it
     r = await core.execute("fake-lock", "DoorLock", "set", {"locked": False}, via="local")

@@ -2,6 +2,7 @@ import { readdir, stat, statfs } from 'node:fs/promises';
 import { AuditLog } from './audit/audit.js';
 import type { HubConfig } from './config.js';
 import { JsonDeviceGateway } from './devices/jsonGateway.js';
+import { MqttDeviceGateway } from './devices/mqttGateway.js';
 import { KeywordRouter } from './intent/keywordRouter.js';
 import { OllamaIntent } from './intent/ollamaIntent.js';
 import { Ollama } from 'ollama';
@@ -35,7 +36,7 @@ export async function buildApp(
   const policy = Policy.load(config.POLICY_FILE);
   const state = new StateStore();
   const audit = new AuditLog(config.AUDIT_DIR, config.AUDIT_TEXT);
-  const devices = opts.devices ?? new JsonDeviceGateway(config.DEVICES_FILE);
+  const devices = opts.devices ?? (await defaultGateway(config, log));
   const enabled = new Set(policy.enabledTools());
   const deviceTools = (await generateDeviceTools(devices)).filter((t) => enabled.has(t.name));
   const tools = toolMap([...allTools, ...deviceTools] as Tool[]);
@@ -60,4 +61,11 @@ export async function buildApp(
 function requireModel(model: string): string {
   if (!model) throw new Error('INTENT=ollama needs OLLAMA_MODEL in config/hub.env');
   return model;
+}
+
+async function defaultGateway(config: HubConfig, log: Logger): Promise<DeviceGateway> {
+  if (config.DEVICES === 'json') return new JsonDeviceGateway(config.DEVICES_FILE);
+  const gw = new MqttDeviceGateway({ url: config.DEVICES_BUS_URL, username: config.DEVICES_BUS_USER, password: config.DEVICES_BUS_PASSWORD, log });
+  await gw.start();
+  return gw;
 }

@@ -3,18 +3,21 @@ import { join } from 'node:path';
 import { Ajv2020 } from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import { describe, expect, it } from 'vitest';
-import { cloudHubV1, contractsRoot, fixtures, localDevicesV0 } from '../src/index.js';
+import { cloudHubV1, contractsRoot, fixtures, localDevicesV1 } from '../src/index.js';
 
 const ajv = new Ajv2020({ strict: true, allErrors: true });
 addFormats.default(ajv);
 
 const validators = {
   'cloud-hub/v1': { command: ajv.compile(cloudHubV1.command), reply: ajv.compile(cloudHubV1.reply) },
-  'local-devices/v0': {
-    meta: ajv.compile(localDevicesV0.meta),
-    state: ajv.compile(localDevicesV0.state),
-    set: ajv.compile(localDevicesV0.set),
-    result: ajv.compile(localDevicesV0.result),
+  'local-devices/v1': {
+    meta: ajv.compile(localDevicesV1.meta),
+    state: ajv.compile(localDevicesV1.state),
+    set: ajv.compile(localDevicesV1.set),
+    result: ajv.compile(localDevicesV1.result),
+    registry: ajv.compile(localDevicesV1.registry),
+    request: ajv.compile(localDevicesV1.request),
+    response: ajv.compile(localDevicesV1.response),
   },
 } as const;
 

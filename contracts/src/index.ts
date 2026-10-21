@@ -28,11 +28,14 @@ export const cloudHubV1 = {
   },
 };
 
-export const localDevicesV0 = {
-  meta: readJson('local-devices/v0/meta.schema.json'),
-  state: readJson('local-devices/v0/state.schema.json'),
-  set: readJson('local-devices/v0/set.schema.json'),
-  result: readJson('local-devices/v0/result.schema.json'),
+export const localDevicesV1 = {
+  meta: readJson('local-devices/v1/meta.schema.json'),
+  state: readJson('local-devices/v1/state.schema.json'),
+  set: readJson('local-devices/v1/set.schema.json'),
+  result: readJson('local-devices/v1/result.schema.json'),
+  registry: readJson('local-devices/v1/registry.schema.json'),
+  request: readJson('local-devices/v1/request.schema.json'),
+  response: readJson('local-devices/v1/response.schema.json'),
 };
 
 export interface Fixture {
