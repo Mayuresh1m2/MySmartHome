@@ -124,7 +124,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 ### Phase G — Go to the cloud — needs G3/G4/G9
 - [x] G1' AWS CLI (aws login), .env, cdk bootstrap
 - [x] G2' aws M2: deployed; fake reply → table item; handoff → out/hub.crt + out/hub.env (progress/30)
-- [~] G3' hub M1 real: hub on IoT Core, fake command → reply item ✔; Wi-Fi off/on reconnect test is the owner's
+- [x] G3' hub M1 real: hub on IoT Core, fake command → reply item ✔; Wi-Fi off/on reconnect ✔ (progress/33)
 - [x] G4' aws M3: skill created, endpoint set, dev testing enabled; simulation: hub on → reply, hub off → fallback (progress/31)
 - [x] G5' hub M2 acceptance: real Echo (open → how much space is left) answered via the model; invocation renamed to "ramesh dude" (progress/31)
 
