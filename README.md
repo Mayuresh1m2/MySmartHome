@@ -14,8 +14,9 @@ Talk to your home through Alexa without opening your home to the internet.
 ## Quick start (local, no AWS)
 
 ```bash
-corepack enable pnpm && pnpm install
-hearth-hub/scripts/make-csr.sh          # hub key + CSR (key stays on this machine)
+scripts/install-prereqs.sh              # what's present / missing (changes nothing)
+scripts/install-prereqs.sh --system     # sudo part, in your own terminal (docker, compose, mosquitto-clients…)
+scripts/install-prereqs.sh --user       # pnpm, uv, Ollama + model, workspace deps, hub key + CSR (no root)
 pnpm local:up                           # IoT Core emulator + DynamoDB emulator + real skill + real hub
 pnpm local:say "how much space is left"
 pnpm hearth:trace <requestId>           # every log line for one request, across all services
