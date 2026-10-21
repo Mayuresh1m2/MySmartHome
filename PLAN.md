@@ -17,12 +17,12 @@ Guiding principles (from the request): **local setup first, tests at every layer
 
 ## 1. Environment (detected 2026-10-21)
 
-- Machine: Intel i7-5500U (2C/4T), 15 GB RAM (~5.7 GB free at idle), Intel HD 5500 (no CUDA/ROCm), Ubuntu 26.04.1 x86_64
+- Machine: Intel i7-5500U (2C/4T), 15 GB RAM (~5.7 GB free at idle), Intel HD 5500 **plus a discrete AMD Radeon R9 M375 (4 GiB, GCN 1.0) usable by Ollama through Vulkan** (missed in the first survey, corrected 2026-10-21, see progress/20), Ubuntu 26.04.1 x86_64
 - Present: Node 22.23, npm 10.9, corepack 0.34, uv 0.10, Python 3.14, git, gh, openssl, jq, tcpdump, Docker 29.3 (not usable without sudo; no compose plugin)
 - Missing: pnpm, AWS CLI, ASK CLI, CDK (comes via pnpm), Ollama, Mosquitto, nmap, avahi-browse
 
 Consequences:
-- **LLM runs CPU-only.** p95 < 4 s needs a small model (≈1.5–3B, Q4) and a compact prompt. Candidate list to benchmark: `qwen2.5:1.5b`, `qwen2.5:3b`, `llama3.2:3b`. Recorded under hearth-hub Environment once chosen.
+- **LLM runs on the R9 M375 via Vulkan** (CPU-only is too slow for 3B: every eval case timed out). That GPU lost its device once under two pinned models, so its stability is an open question. Candidate list to benchmark: `qwen2.5:1.5b`, `qwen2.5:3b`, `llama3.2:3b`. Recorded under hearth-hub Environment once chosen.
 - **Local stack must not depend on Docker** until docker group access is granted. Use pure-Node substitutes: `aedes` (MQTT broker, with TLS client-cert auth to mimic IoT Core) and `dynalite` (DynamoDB emulator).
 
 ## 2. Approval gates (I stop and ask)
@@ -107,7 +107,7 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [x] C4 Local e2e test: request → hub → spoken reply; hub off → fallback; trace by `requestId`
 
 ### Phase D — Local model (hearth-hub M3) — needs G2
-- [~] D1 Install Ollama, benchmark candidate models on this CPU, pick one, record in Environment — Ollama 0.40.6 + qwen2.5:3b done (91.7 %, 20/20, p95 ≈ 4.0 s, misses latency); next: user picks 1.5b / fast path / longer timeout
+- [~] D1 Install Ollama, benchmark models, pick one — 0.40.6 installed; R9 M375 GPU found (Vulkan). 3b/GPU 93.8 %, 20/20, p95 3.9 s; 1.5b fast but 73–77 %, 18/20. Next: reboot (GPU reset) + GPU soak test, then choose (progress/20)
 - [x] D2 intent module (one call, tool calling, untrusted output), warm-up + keep-alive, latency metrics — code + mocked tests; real-model check waits for G2
 - [x] D3 `pnpm eval` with ≥ 40 phrasings incl. must-refuse; target ≥ 90 %, all refusals, p95 < 4 s — harness + 48 cases done; keyword baseline 83.3 %, 20/20; model run waits for G2
 

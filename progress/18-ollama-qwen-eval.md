@@ -1,5 +1,7 @@
 # 18 — Ollama installed, qwen2.5:3b evaluated (PLAN D1, gate G2 approved: one model)
 
+> **Correction (see entry 20):** these runs were on the discrete **AMD R9 M375 GPU via Vulkan**, not the CPU. The machine has a GPU my first survey missed. The "~130 ms/token on 2 cores" reading below is really GPU generation speed.
+
 Date: 2026-10-21. Your decisions: install Ollama with **one** model, the hub runs **on this laptop**, F2 goes **through the devices core**, other gates later.
 
 ## Hub environment recorded

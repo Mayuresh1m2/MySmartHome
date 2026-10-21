@@ -71,8 +71,10 @@ export interface OllamaIntentOptions {
   metrics?: HubMetrics;
   /** Per-command budget once the model is loaded. */
   timeoutMs?: number;
-  /** Loading a model from disk on a CPU-only machine takes far longer than a command; warm-up gets its own budget. */
+  /** Loading a model from disk takes far longer than a command; warm-up gets its own budget. */
   warmUpTimeoutMs?: number;
+  /** Ollama num_gpu: layers on the GPU (0 = CPU only). Undefined lets Ollama decide. */
+  numGpu?: number;
 }
 
 /**
@@ -159,7 +161,7 @@ export class OllamaIntent implements IntentEngine {
         stream: true,
         keep_alive: -1,
         think: false,
-        options: { temperature: 0, num_ctx: 2048, num_predict: 48 },
+        options: { temperature: 0, num_ctx: 2048, num_predict: 48, ...(this.o.numGpu === undefined ? {} : { num_gpu: this.o.numGpu }) },
       });
       const expired = new Promise<never>((_, reject) => {
         const check = setInterval(() => {

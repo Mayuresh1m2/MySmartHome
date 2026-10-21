@@ -20,7 +20,7 @@ Commands: `node --version` and the like for each tool, `lscpu`, `free -h`, `lspc
 |---|---|
 | CPU | Intel Core i7-5500U @ 2.40GHz, 4 threads |
 | RAM | 15 GiB total, ~5.7 GiB available |
-| GPU | Intel HD 5500 (Broadwell GT2): no CUDA/ROCm, so the LLM runs on CPU |
+| GPU | Intel HD 5500 (Broadwell GT2) **and an AMD Radeon R9 M375, 4 GiB (see correction below)** |
 | OS | Ubuntu 26.04.1 LTS, x86_64 |
 | Disk | 147 GB free |
 | Node / npm / corepack | v22.23.1 / 10.9.8 / 0.34.6 (via fnm) |
@@ -42,3 +42,7 @@ Commands: `node --version` and the like for each tool, `lscpu`, `free -h`, `lspc
 
 - `PLAN.md`: master plan with phases A–I, gates and loop protocol.
 - This journal.
+
+## Correction (later the same day)
+
+The first survey ran `lspci | grep -iE 'vga|3d|nvidia'`, which misses AMD GPUs listed as `Display controller [0380]`. The machine also has a **discrete AMD Radeon R9 M375 (4 GiB, GCN 1.0 "Verde")**, and Ollama found it through Vulkan. Every "CPU-only" statement written before progress/20 is wrong. Details in [20-gpu-finding-and-model-comparison.md](20-gpu-finding-and-model-comparison.md).

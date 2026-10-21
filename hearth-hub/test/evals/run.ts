@@ -35,6 +35,22 @@ if (app.intent instanceof OllamaIntent) {
   console.log(`warm-up ${Date.now() - t0} ms (excluded from latency)`);
 }
 
+/**
+ * Arguments match when they normalise to the same text, or, for `device`, when both resolve to the same device
+ * through the gateway (e.g. "wifi" and "router" are aliases of one device, so the hub's answer is identical).
+ */
+async function argsMatch(expected: Record<string, string>, got: Record<string, unknown>): Promise<boolean> {
+  for (const [k, v] of Object.entries(expected)) {
+    if (norm(got[k]) === norm(v)) continue;
+    if (k === 'device') {
+      const [a, b] = await Promise.all([app.devices.find(v), app.devices.find(String(got[k] ?? ''))]);
+      if (a && b && a.id === b.id) continue;
+    }
+    return false;
+  }
+  return true;
+}
+
 const cases = loadCases();
 const rows: { text: string; expected: string; got: string; ok: boolean; ms: number }[] = [];
 for (let r = 0; r < Number(flags.repeat); r++) {
@@ -58,7 +74,10 @@ for (let r = 0; r < Number(flags.repeat); r++) {
       const ms = performance.now() - t0;
       let ok: boolean;
       if ('refuse' in c) ok = refused;
-      else ok = !refused && got.startsWith(`${c.tool}(`) && Object.entries(c.args ?? {}).every(([k, v]) => norm((JSON.parse(got.slice(c.tool.length + 1, got.lastIndexOf(')'))) as Record<string, unknown>)[k]) === norm(v));
+      else {
+        const gotArgs = got.startsWith(`${c.tool}(`) ? (JSON.parse(got.slice(c.tool.length + 1, got.lastIndexOf(')'))) as Record<string, unknown>) : null;
+        ok = !refused && gotArgs !== null && (await argsMatch(c.args ?? {}, gotArgs));
+      }
       rows.push({ text: c.text, expected: 'refuse' in c ? 'refuse' : `${c.tool}${c.args ? JSON.stringify(c.args) : ''}`, got, ok, ms });
     } catch (err) {
       rows.push({ text: c.text, expected: 'refuse' in c ? 'refuse' : c.tool, got: `error: ${(err as Error).message}`, ok: false, ms: performance.now() - t0 });

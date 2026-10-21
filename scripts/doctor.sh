@@ -30,6 +30,15 @@ have ollama && pass "ollama $(ver ollama --version)" || note "ollama missing (ga
 have aws && pass "$(ver aws --version)" || note "aws cli missing (gate G3)"
 have ask && pass "ask cli $(ver ask --version)" || note "ask cli missing (gate G4)"
 
+echo "GPU"
+# Match "Display controller" too: discrete AMD GPUs are often listed that way, not as VGA.
+while IFS= read -r line; do pass "$line"; done < <(lspci 2>/dev/null | grep -iE 'vga|3d|display' | cut -d' ' -f2- )
+if [ -f "$HOME/.ollama/serve.log" ]; then
+  compute=$(grep -oE 'msg="inference compute".*' "$HOME/.ollama/serve.log" | grep -oE 'library=[A-Za-z]+|description="[^"]*"' | paste -sd' ')
+  [ -n "$compute" ] && pass "ollama compute: $compute"
+  grep -q "ErrorDeviceLost\|device lost" "$HOME/.ollama/serve.log" && fail "ollama log reports a lost GPU device (reboot to reset the GPU)"
+fi
+
 echo "Ollama runtime"
 if curl -fsS -m 2 http://127.0.0.1:11434/api/version >/dev/null 2>&1; then
   pass "ollama API up: $(curl -fsS -m 2 http://127.0.0.1:11434/api/version)"

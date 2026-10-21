@@ -50,6 +50,7 @@ export async function buildApp(
           log,
           metrics,
           timeoutMs: config.INTENT_TIMEOUT_MS,
+          numGpu: config.OLLAMA_NUM_GPU,
         })
       : new KeywordRouter());
   const unknown = [...enabled].filter((n) => !tools.has(n));

@@ -19,6 +19,8 @@ const Env = z.object({
   CERT_FILE: z.string().optional(),
   OLLAMA_HOST: z.string().default('http://127.0.0.1:11434'),
   OLLAMA_MODEL: z.string().default(''),
+  /** Layers to offload to the GPU (Ollama num_gpu). Unset: Ollama decides. 0: CPU only. */
+  OLLAMA_NUM_GPU: z.coerce.number().int().nonnegative().optional(),
   INTENT: z.enum(['keyword', 'ollama']).default('keyword'),
   /** Per-command model budget. Must stay below the Lambda's REPLY_TIMEOUT_MS minus publish time. */
   INTENT_TIMEOUT_MS: z.coerce.number().int().positive().max(4800).default(4000),
