@@ -5,7 +5,7 @@
 #   account  the whole account's costs                    .env: HEARTH_ACCOUNT_KILL_SWITCH_USD  (default 5)
 # Both stop Hearth only; neither deletes anything.
 #
-#   scripts/kill-switch.sh show                    limits in .env + the deployed actions' state
+#   scripts/kill-switch.sh show                    limits in .env, each budget's spend this month and its action's state
 #   scripts/kill-switch.sh set hearth|account <usd>  change a limit in the repo-root .env
 #                                                  (then: pnpm test && pnpm cdk diff && pnpm cdk deploy)
 #   scripts/kill-switch.sh reset hearth|account    after a trip: reverse that action (detach the deny policy). Ask the owner first.
@@ -26,11 +26,20 @@ case "${1:-show}" in
   show)
     echo ".env: HEARTH_KILL_SWITCH_USD=${HEARTH_KILL_SWITCH_USD:-1}  HEARTH_ACCOUNT_KILL_SWITCH_USD=${HEARTH_ACCOUNT_KILL_SWITCH_USD:-5}"
     if command -v aws >/dev/null && aws sts get-caller-identity >/dev/null 2>&1; then
-      for w in hearth account; do
-        printf '%-8s ' "$w"
-        aws budgets describe-budget-actions-for-budget --account-id "$(account_id)" --budget-name "$(budget_of "$w")" --region "$REGION" \
-          --query 'Actions[0].Status' --output text 2>/dev/null || echo "(not deployed)"
-      done
+      acct=$(account_id)
+      budgets=$(aws budgets describe-budgets --account-id "$acct" --region "$REGION" --output json)
+      actions=$(aws budgets describe-budget-actions-for-account --account-id "$acct" --region "$REGION" --output json)
+      echo
+      # One row per Hearth budget: what it counts, its limit, this month's actual spend, and its action's state.
+      jq -rn --argjson b "$budgets" --argjson a "$actions" --arg hub "$(hub)" '
+        def pad(n): tostring | if length < n then . + (" " * (n - length)) else .[0:n] end;
+        def usd: tonumber | (. * 100 | round) as $c | "$\($c / 100 | floor).\(($c % 100 | tostring) as $s | if ($s | length) == 1 then "0" + $s else $s end)";
+        "budget                     counts           limit   spent this month   at the limit",
+        ($b.Budgets[] | select(.BudgetName | startswith("hearth-" + $hub + "-")) | . as $x
+          | ([$a.Actions[] | select(.BudgetName == $x.BudgetName)][0]) as $act
+          | "\($x.BudgetName | pad(25))  \((if ($x.CostFilters // {}) == {} then "whole account" else "filtered" end) | pad(15))  \($x.BudgetLimit.Amount | usd | pad(6))  \($x.CalculatedSpend.ActualSpend.Amount | usd | pad(17))  \(if $act then "deny-all on \($act.Definition.IamActionDefinition.Roles | length) Hearth roles (\($act.ApprovalModel | ascii_downcase), \($act.Status | ascii_downcase))" else "no action deployed" end)"),
+        "",
+        "Nothing is deleted when a switch trips: the skill and rule roles lose all permissions until it is reset."'
     else echo "deployed state: AWS CLI not signed in"; fi
     ;;
   set)
