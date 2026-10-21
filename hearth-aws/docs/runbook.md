@@ -16,6 +16,19 @@ Anything that deletes, replaces or deactivates something in AWS needs the owner'
 
 The alarm emails go through an SNS email subscription. **AWS sends a confirmation email after the first deploy, and alerts arrive only after someone clicks it.**
 
+## Kill switch tripped
+
+The symptom: Alexa always answers "Your home hub didn't answer in time", the hub is healthy, and an email from AWS Budgets says the action ran. The `KillSwitchDeny` policy is attached to the skill and rule roles.
+
+```bash
+scripts/kill-switch.sh show          # limit + action status
+# find out why first: Cost Explorer, filter tag project=hearth, group by service
+scripts/kill-switch.sh set 3         # if the limit should simply be higher (then test → diff → deploy)
+scripts/kill-switch.sh reset         # ⚠ ask first: detaches the deny policy
+```
+
+It trips again within the same month if Hearth's cost is still above the limit.
+
 ## Deploy
 
 ```bash

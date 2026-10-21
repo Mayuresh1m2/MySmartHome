@@ -1,8 +1,8 @@
-import { CfnOutput, Duration, RemovalPolicy, Stack, type StackProps } from 'aws-cdk-lib';
+import { CfnOutput, Duration, RemovalPolicy, Stack, Tags, type StackProps } from 'aws-cdk-lib';
 import { AttributeType, BillingMode, Table } from 'aws-cdk-lib/aws-dynamodb';
-import { PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { Effect, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { CfnCertificate, CfnPolicy, CfnPolicyPrincipalAttachment, CfnThing, CfnThingPrincipalAttachment, CfnTopicRule } from 'aws-cdk-lib/aws-iot';
-import { CfnBudget } from 'aws-cdk-lib/aws-budgets';
+import { CfnBudget, CfnBudgetsAction } from 'aws-cdk-lib/aws-budgets';
 import { Alarm, AlarmStatusWidget, ComparisonOperator, Dashboard, GraphWidget, Metric, TreatMissingData } from 'aws-cdk-lib/aws-cloudwatch';
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Topic } from 'aws-cdk-lib/aws-sns';
@@ -24,6 +24,8 @@ export class HearthStack extends Stack {
   constructor(scope: Construct, id: string, props: HearthStackProps) {
     super(scope, id, props);
     const { config } = props;
+    // Cost allocation: the kill-switch budget counts only resources carrying this tag.
+    Tags.of(this).add('project', 'hearth');
     const name = `hearth-${config.hubId}`;
     const commandsTopic = `hearth/${config.hubId}/commands`;
     const repliesTopic = `hearth/${config.hubId}/replies`;
@@ -165,7 +167,7 @@ export class HearthStack extends Stack {
         budgetName: `hearth-${config.hubId}-monthly`,
         budgetType: 'COST',
         timeUnit: 'MONTHLY',
-        budgetLimit: { amount: 5, unit: 'USD' },
+        budgetLimit: { amount: config.budgetAlertUsd, unit: 'USD' },
       },
       notificationsWithSubscribers: [
         {
@@ -174,6 +176,54 @@ export class HearthStack extends Stack {
         },
       ],
     });
+
+    // ---- Kill switch: at killSwitchUsd of *actual* Hearth cost in a month, AWS Budgets automatically attaches a
+    // deny-all policy to the skill and rule roles. The Lambda can then neither publish commands nor read replies,
+    // and the rule can't write, so the cloud side stops costing money. Undo: scripts/kill-switch.sh reset.
+    const killPolicy = new ManagedPolicy(this, 'KillSwitchDeny', {
+      description: 'Hearth kill switch: attached by AWS Budgets when the monthly cost limit is reached',
+      statements: [new PolicyStatement({ effect: Effect.DENY, actions: ['*'], resources: ['*'] })],
+    });
+    const killBudgetName = `hearth-${config.hubId}-killswitch`;
+    const killBudget = new CfnBudget(this, 'KillSwitchBudget', {
+      budget: {
+        budgetName: killBudgetName,
+        budgetType: 'COST',
+        timeUnit: 'MONTHLY',
+        budgetLimit: { amount: config.killSwitchUsd, unit: 'USD' },
+        // Only Hearth's own costs, so other usage in the account can't switch Hearth off.
+        // Requires the "project" cost allocation tag to be activated in the Billing console.
+        costFilters: { TagKeyValue: ['user:project$hearth'] },
+      },
+    });
+    const budgetsRole = new Role(this, 'KillSwitchExecutionRole', {
+      assumedBy: new ServicePrincipal('budgets.amazonaws.com'),
+      description: 'Lets AWS Budgets attach/detach only the kill-switch policy on only the Hearth roles',
+      inlinePolicies: {
+        killswitch: new PolicyDocument({
+          statements: [
+            new PolicyStatement({
+              actions: ['iam:AttachRolePolicy', 'iam:DetachRolePolicy'],
+              resources: [role.roleArn, ruleRole.roleArn],
+              conditions: { ArnEquals: { 'iam:PolicyARN': killPolicy.managedPolicyArn } },
+            }),
+          ],
+        }),
+      },
+    });
+    const killAction = new CfnBudgetsAction(this, 'KillSwitchAction', {
+      budgetName: killBudgetName,
+      actionType: 'APPLY_IAM_POLICY',
+      approvalModel: 'AUTOMATIC',
+      notificationType: 'ACTUAL',
+      actionThreshold: { type: 'PERCENTAGE', value: 100 },
+      definition: { iamActionDefinition: { policyArn: killPolicy.managedPolicyArn, roles: [role.roleName, ruleRole.roleName] } },
+      executionRoleArn: budgetsRole.roleArn,
+      subscribers: [{ type: 'EMAIL', address: config.budgetEmail }],
+    });
+    killAction.addResourceDependency(killBudget);
+    new CfnOutput(this, 'KillSwitchBudgetName', { value: killBudgetName });
+    new CfnOutput(this, 'KillSwitchActionId', { value: killAction.attrActionId });
 
     const emf = (metricName: string, outcome: string | undefined, statistic: string, label: string) =>
       new Metric({

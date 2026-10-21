@@ -6,5 +6,7 @@
   "replyTimeoutMs": 5000,
   "budgetEmail": "you@example.com",
   "locale": "en-IN",
-  "debugUtterances": false
+  "debugUtterances": false,
+  "killSwitchUsd": 1,
+  "budgetAlertUsd": 5
 }
