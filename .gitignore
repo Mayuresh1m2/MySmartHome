@@ -39,3 +39,6 @@ hearth-devices/deploy/mosquitto/data/
 # per-person settings (see .env.example)
 /.env
 hearth-hub/config/devices.json
+
+# hearth-devices: anything that names the owner's actual devices (models, addresses, findings)
+hearth-devices/docs/private/

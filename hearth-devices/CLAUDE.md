@@ -6,7 +6,7 @@ Related projects: hearth-hub consumes this platform through its `DeviceGateway`.
 
 ## My devices
 
-Fill this in during Phase 0. Don't assume a model: ask me, or read it from the device or its app.
+Fill this in during Phase 0. Don't assume a model: ask me, or read it from the device or its app. The real list (brands, models, addresses) lives in `docs/private/my-devices.md`, which is gitignored; committed files name device types only.
 
 | Device | Model | Firmware | IP / MAC | App it's set up with | Class |
 |---|---|---|---|---|---|
@@ -19,7 +19,7 @@ Fill this in during Phase 0. Don't assume a model: ask me, or read it from the d
 | Smart doorbell | | | | | |
 | Car with a connected-car app | | | | | |
 
-Starting leads for each device are in `docs/device-leads.md`. Treat them as unverified starting points, not facts.
+Generic starting leads are in `docs/device-leads.md`, and brand-specific ones in `docs/private/device-leads.md`. Treat them as unverified starting points, not facts.
 
 ## Classify every device
 
@@ -30,7 +30,7 @@ Prefer the lowest class available:
 3. Cloud only: an official or unofficial API through the vendor's servers
 4. Observe only: no control, just presence, online status and network behavior
 
-Record the class, the evidence and the risks in `docs/devices/<device>.md`.
+Record the class, the evidence and the risks in `docs/private/devices/<device>.md` (gitignored, because it names the actual model).
 
 ## Architecture
 
