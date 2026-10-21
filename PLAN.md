@@ -135,8 +135,9 @@ Status legend: `[ ]` todo, `[~]` in progress, `[x]` done, `[!]` blocked on a gat
 - [x] H3 aws M5: README for self-deployment incl. handoff — ASK commands to be confirmed at M3 (G4)
 
 ### Phase I — Real devices (hearth-devices Phases 2–5) — per-device gates G7/G8
-- [!] I1 TV adapter (WoL, power, volume, mute, input/app, polling) with recorded fixtures
-- [!] I2 remaining devices in Phase-0 order; I3 observe-only devices + outbound traffic summary
+- [!] I1 Robot vacuum first (owner's choice, 2026-10-21): "Alexa, ask ramesh dude to get the house cleaned" starts a clean; start, pause, dock and status, with recorded fixtures. Needs the vacuum's model (Phase 0) and its own device gate
+- [!] I1b Device nicknames with personality: every device gets a fun name (owner picks), used as an alias, and Ramesh dude's replies hand the job to it by name. Replies stay fixed sentences in code (variety from a list, never from the model). Each name passes the phone voice-mode transcription test before it's adopted
+- [!] I2 TV adapter (WoL, power, volume, mute, input/app, polling), then the remaining devices in Phase-0 order; I3 observe-only devices + outbound traffic summary
 
 ## 5. Loop protocol
 
