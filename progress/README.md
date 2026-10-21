@@ -31,8 +31,13 @@ The whole setup journey, in order. Each file covers one step from `PLAN.md`: its
 | 24 | [24-mosquitto-bus.md](24-mosquitto-bus.md) | E3 (devices Phase 1) | done |
 | 25 | [25-iot-emulator-mqtt5.md](25-iot-emulator-mqtt5.md) | E3 follow-up (hub on MQTT 5) | done |
 | 26 | [26-hub-service-and-gpu-power.md](26-hub-service-and-gpu-power.md) | H2 (hub M4) | done on the local stack; real-Alexa reboot after AWS |
-| 27 | [27-cost-kill-switch.md](27-cost-kill-switch.md) | hearth-aws cost guard | done (deploy pending) |
-| 28 | [28-aws-account-and-region.md](28-aws-account-and-region.md) | G1′ (AWS account) | region → ap-southeast-2; your sign-in steps next |
+| 27 | [27-cost-kill-switch.md](27-cost-kill-switch.md) | hearth-aws cost guard | done |
+| 28 | [28-aws-account-and-region.md](28-aws-account-and-region.md) | G1′ (AWS account) | done; region ap-southeast-2 |
 | 29 | [29-env-config-and-privacy.md](29-env-config-and-privacy.md) | privacy + .env | done |
 | 30 | [30-first-deploy.md](30-first-deploy.md) | aws M2, hub M1 | deployed; hub on real IoT Core |
-| 31 | [31-skill-live.md](31-skill-live.md) | aws M3 | done; real Echo test is yours |
+| 31 | [31-skill-live.md](31-skill-live.md) | aws M3, hub M2 | done; works on the Echo as "ramesh dude" |
+| 32 | [32-reboot-test-aws.md](32-reboot-test-aws.md) | hub M4 | done |
+| 33 | [33-wifi-reconnect.md](33-wifi-reconnect.md) | hub M1 | done |
+| 34 | [34-killswitch-whole-account.md](34-killswitch-whole-account.md) | cost guard | done |
+| 35 | [35-stop-start.md](35-stop-start.md) | laptop footprint, off switch | done; suspend/resume untested |
+| 36 | [36-publish-prep.md](36-publish-prep.md) | publishing | done |
