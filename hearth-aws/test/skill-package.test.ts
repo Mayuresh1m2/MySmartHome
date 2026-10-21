@@ -15,8 +15,8 @@ describe('skill package follows the hearth-aws skill rules', () => {
     expect(Object.keys(manifest.publishingInformation.locales)).toEqual([example.locale]);
   });
 
-  it('invocation name is the two-word "chowkidar ji"', () => {
-    expect(model.invocationName).toBe('chowkidar ji');
+  it('invocation name is the two-word "ramesh dude"', () => {
+    expect(model.invocationName).toBe('ramesh dude');
     expect(model.invocationName.split(' ')).toHaveLength(2);
   });
 
@@ -45,7 +45,7 @@ describe('skill package follows the hearth-aws skill rules', () => {
   });
 
   it('example phrases use the invocation name, and the endpoint is a placeholder (no account ids committed)', () => {
-    for (const p of manifest.publishingInformation.locales['en-IN'].examplePhrases) expect(p).toMatch(/^Alexa, (open|ask) chowkidar ji/);
+    for (const p of manifest.publishingInformation.locales['en-IN'].examplePhrases) expect(p).toMatch(/^Alexa, (open|ask) ramesh dude/);
     expect(manifest.apis.custom.endpoint.uri).toMatch(/^REPLACE_WITH/);
     expect(JSON.stringify(manifest)).not.toMatch(/\d{12}/);
   });

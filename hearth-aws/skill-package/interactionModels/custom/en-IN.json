@@ -1,7 +1,7 @@
 {
   "interactionModel": {
     "languageModel": {
-      "invocationName": "chowkidar ji",
+      "invocationName": "ramesh dude",
       "intents": [
         {
           "name": "CommandIntent",

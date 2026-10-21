@@ -62,3 +62,18 @@ simulate "ask chowkidar ji to ping"                 → IntentRequest slot "ping
 simulate "ask chowkidar ji how much space is left"  → "You have 141 gigabytes free out of 467, about 30 percent."
 simulate "open chowkidar ji"                        → LaunchRequest → "Hearth is ready. What should I ask your home hub?"
 ```
+
+## Second rename: `ramesh dude`
+
+- "chowkidar ji" also failed on your Echo. CloudWatch showed **no Echo invocations** after the rename, only my 3 simulations at 15:56.
+- **Your method:** dictate the phrase in the phone's voice mode and read the transcript. "chowkidar ji" and "bhai" weren't transcribed reliably; **"Ramesh dude" came out exactly, every time.** "Ramesh" alone isn't allowed (one word; a person's name needs another word), so the name is **`ramesh dude`**.
+- The hearth-aws/CLAUDE.md invocation rule now records the history and the test method: check the whole phrase in voice mode before changing the name. (My scripted rename briefly garbled that history sentence; fixed.)
+
+```text
+set-interaction-model → SUCCEEDED · update-skill-manifest → SUCCEEDED (display name "Ramesh Dude (Hearth)")
+simulate "ask ramesh dude how much space is left" → IntentRequest → "You have 141 gigabytes free out of 467, about 30 percent."
+simulate "ask ramesh dude to ping"                → "Hub is online."
+simulate "open ramesh dude"                       → LaunchRequest → "Hearth is ready. What should I ask your home hub?"
+```
+
+The deploy you stopped (help sentence only) is still pending; it now carries "ramesh dude".

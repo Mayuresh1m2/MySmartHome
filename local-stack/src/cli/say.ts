@@ -1,4 +1,4 @@
-/** `pnpm local:say "<text>"`: what "Alexa, ask chowkidar ji to <text>" would say, via the local stack. */
+/** `pnpm local:say "<text>"`: what "Alexa, ask ramesh dude to <text>" would say, via the local stack. */
 const text = process.argv.slice(2).join(' ').trim();
 if (!text) {
   console.error('usage: pnpm local:say "<text>"');

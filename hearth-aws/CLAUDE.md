@@ -8,7 +8,7 @@ Out of scope: anything that runs on my home network, device control, and the loc
 
 ## How a request flows
 
-1. "Alexa, ask chowkidar ji to <command>" makes Alexa call the skill Lambda in the configured region (`HEARTH_AWS_REGION`).
+1. "Alexa, ask ramesh dude to <command>" makes Alexa call the skill Lambda in the configured region (`HEARTH_AWS_REGION`).
 2. The Lambda publishes the command to `hearth/<hubId>/commands` through the IoT Data Plane.
 3. The hub, connected outbound over MQTT with its certificate, runs it and publishes to `hearth/<hubId>/replies`.
 4. An IoT rule writes the reply into a DynamoDB table with a 5 minute TTL.
@@ -68,7 +68,7 @@ Per-person values live in the repo-root `.env` (gitignored; template `.env.examp
 
 ## Skill rules
 
-- Invocation name `chowkidar ji` ("watchman", with a respectful second word). It's two words because one-word names aren't allowed unless they're your own brand, and a person-style name needs another word. It replaced `chowkidar ji` on 2026-10-21: Alexa's English (India) recognition missed "hearth" in one-shot requests ("ask chowkidar ji …" never reached the skill, while "open chowkidar ji" did).
+- Invocation name `ramesh dude`. It's two words because one-word names aren't allowed unless they're your own brand, and a person's name needs another word. Chosen 2026-10-21 by testing transcription in the phone's voice mode: Alexa's English (India) recognition missed `home hearth` ("hearth") and `chowkidar ji` in one-shot requests, while "Ramesh dude" was transcribed exactly every time. Before changing it, check the whole phrase ("ask <name> how much space is left") the same way.
 - One `CommandIntent` with slot `command` of custom type `COMMAND_TEXT` and the single sample `{command}`. Give the type 15 to 20 varied sample values. Don't use `AMAZON.SearchQuery`, which requires a carrier phrase around the slot.
 - Keep the required built-ins (Help, Stop, Cancel, NavigateHome). Leave out FallbackIntent, which competes with free-form phrases.
 - The skill locale must match my Echo's language, English (India) by default.
@@ -129,7 +129,7 @@ Work one milestone at a time, in order.
 ### M3: The skill
 - Manifest and interaction model. Create the skill with ASK CLI, set its endpoint to the Lambda ARN, and enable it for testing in development.
 - Order matters: the Lambda permission needs the skill ID and the skill endpoint needs the Lambda ARN. Create the skill first, save its ID in config, deploy, then set the endpoint.
-- Done when an ASK CLI simulation of "ask chowkidar ji to ping" returns the fallback while the hub is off, and the hub's reply while hearth-hub is running.
+- Done when an ASK CLI simulation of "ask ramesh dude to ping" returns the fallback while the hub is off, and the hub's reply while hearth-hub is running.
 
 ### M4: Hardening
 - Budget alert, log retention, a Lambda error alarm emailed to me, the `DEBUG_UTTERANCES` flag, and a certificate rotation runbook in `docs/runbook.md` (new CSR, new certificate, switch the hub, then deactivate the old one).

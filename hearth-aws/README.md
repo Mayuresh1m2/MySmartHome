@@ -1,6 +1,6 @@
 # hearth-aws
 
-The cloud half of Hearth: an Alexa custom skill ("Alexa, ask **chowkidar ji** to …") whose Lambda forwards what you said to your own home hub through AWS IoT Core, waits up to 3 s for the hub's reply, and speaks it. The hub ([`../hearth-hub`](../hearth-hub)) runs on a machine in your home and only ever connects **outbound**. Nothing here exposes a public endpoint.
+The cloud half of Hearth: an Alexa custom skill ("Alexa, ask **ramesh dude** to …") whose Lambda forwards what you said to your own home hub through AWS IoT Core, waits up to 3 s for the hub's reply, and speaks it. The hub ([`../hearth-hub`](../hearth-hub)) runs on a machine in your home and only ever connects **outbound**. Nothing here exposes a public endpoint.
 
 ```
 Echo ─▶ Alexa ─▶ skill Lambda ──publish──▶ IoT Core ──▶ hearth/<hubId>/commands ──▶ hub (your home, mTLS)
@@ -163,11 +163,11 @@ curl -s 127.0.0.1:8787/health      # "mqtt": {"state": "connected"}
 
 ```bash
 ask smapi simulate-skill --skill-id <skillId> --stage development --device-locale en-IN \
-  --input-content "ask chowkidar ji to ping"
+  --input-content "ask ramesh dude to ping"
 # poll: ask smapi get-skill-simulation --skill-id <skillId> --stage development --simulation-id <id>
 ```
 
-With the hub running you'll hear "Hub is online." With it stopped, "Your home hub didn't answer in time. It might be offline." Then try it on your Echo: *"Alexa, ask chowkidar ji how much space is left."*
+With the hub running you'll hear "Hub is online." With it stopped, "Your home hub didn't answer in time. It might be offline." Then try it on your Echo: *"Alexa, ask ramesh dude how much space is left."*
 
 ## Other locales
 

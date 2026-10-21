@@ -4,13 +4,13 @@
     "publishingInformation": {
       "locales": {
         "en-IN": {
-          "name": "Chowkidar Ji (Hearth)",
+          "name": "Ramesh Dude (Hearth)",
           "summary": "Relays what you say to your own home hub and reads back its answer.",
-          "description": "Chowkidar Ji (Hearth) forwards a spoken command to a hub running in your own home, which decides what to do with a local model and a fixed list of allowed tools, then speaks the hub's short reply. Requires your own Hearth hub. Development use only.",
+          "description": "Ramesh Dude (Hearth) forwards a spoken command to a hub running in your own home, which decides what to do with a local model and a fixed list of allowed tools, then speaks the hub's short reply. Requires your own Hearth hub. Development use only.",
           "examplePhrases": [
-            "Alexa, open chowkidar ji",
-            "Alexa, ask chowkidar ji how much space is left",
-            "Alexa, ask chowkidar ji to ping"
+            "Alexa, open ramesh dude",
+            "Alexa, ask ramesh dude how much space is left",
+            "Alexa, ask ramesh dude to ping"
           ],
           "keywords": ["home", "hub", "hearth"]
         }

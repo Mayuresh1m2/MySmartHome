@@ -21,7 +21,7 @@ export interface SkillDeps {
 export const SPEECH = {
   launch: 'Hearth is ready. What should I ask your home hub?',
   reprompt: 'Tell me what to ask your home hub, for example, how much space is left.',
-  help: 'I pass what you say to your home hub and read back its answer. Try: ask chowkidar ji how much space is left.',
+  help: 'I pass what you say to your home hub and read back its answer. Try: ask ramesh dude how much space is left.',
   goodbye: 'Goodbye.',
   noCommand: "I didn't catch that. What should I ask your home hub?",
   timeout: "Your home hub didn't answer in time. It might be offline.",
