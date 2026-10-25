@@ -57,9 +57,11 @@ describe('Policy', () => {
   it('rejects unknown keys (typos must not silently enable things)', () => {
     expect(() => Policy.fromObject({ ...base, tools: { disk_space: { enable: true } } })).toThrow(/Invalid policy/);
   });
-  it('the shipped config/policy.yaml loads, is read-only by voice and allows only known folders', () => {
+  it('the shipped config/policy.yaml loads, reaches medium by voice but not high, and allows only known folders', () => {
     const p = Policy.load(join(hubRoot, 'config', 'policy.yaml'));
-    expect(p.file.voiceRiskCeiling).toBe('read');
+    expect(p.file.voiceRiskCeiling).toBe('medium');
+    // clean_house (medium) is reachable; a high-risk capability never is.
+    expect(p.check({ name: 'clean_house', risk: 'medium' }, {}).allow).toBe(true);
     expect(p.check({ name: 'list_folder', risk: 'read' }, { folder: 'etc' }).allow).toBe(false);
   });
 });

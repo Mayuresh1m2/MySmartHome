@@ -1,7 +1,7 @@
 # Deny by default: a tool that is not listed here is refused even if the model picks it.
 version: 1
 # Highest risk reachable by voice. The spec caps this at medium; nothing high is enabled in this version.
-voiceRiskCeiling: read
+voiceRiskCeiling: medium
 globalRatePerMinute: 30
 
 tools:
@@ -28,3 +28,13 @@ tools:
       device: { maxLength: 40 }
   last_result:
     enabled: true
+  # Start the robot vacuum (medium risk). Reaches the vacuum only through the DeviceGateway /
+  # hearth-devices core, which also enforces online + idle. Refused unless voiceRiskCeiling >= medium.
+  clean_house:
+    enabled: true
+    ratePerMinute: 4
+  # Read-only: report what the vacuum is doing and any fault (e.g. a dry water tank). Used to hear
+  # why a clean stopped, since the robot often finds the problem after the start was accepted.
+  vacuum_status:
+    enabled: true
+    ratePerMinute: 6
