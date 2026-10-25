@@ -30,6 +30,8 @@
             { "name": { "value": "turn on the desk lamp" } },
             { "name": { "value": "switch off the bedroom light" } },
             { "name": { "value": "start the vacuum in the hall" } },
+            { "name": { "value": "clean the house" } },
+            { "name": { "value": "clean my house" } },
             { "name": { "value": "is the dishwasher running" } },
             { "name": { "value": "how full is the main disk" } },
             { "name": { "value": "tell me the hub status" } },
