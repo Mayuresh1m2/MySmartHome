@@ -12,7 +12,15 @@ describe('eval set', () => {
   });
   it('covers every built-in tool and has no duplicate phrasings', () => {
     const tools = new Set(cases.flatMap((c) => ('tool' in c ? [c.tool] : [])));
-    expect([...tools].sort()).toEqual(['disk_space', 'is_device_online', 'last_result', 'list_folder', 'ping']);
+    expect([...tools].sort()).toEqual([
+      'clean_house',
+      'disk_space',
+      'is_device_online',
+      'last_result',
+      'list_folder',
+      'ping',
+      'vacuum_status',
+    ]);
     expect(new Set(cases.map((c) => c.text)).size).toBe(cases.length);
   });
 });

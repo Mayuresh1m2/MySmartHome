@@ -4,7 +4,9 @@ import { matches, type DeviceGateway, type DeviceInfo, type DeviceState, type Ex
 export class FakeGateway implements DeviceGateway {
   readonly name = 'fake';
   readonly calls: { id: string; capability: string; params: Record<string, unknown>; requestId: string }[] = [];
-  readonly state: Record<string, DeviceState> = {
+  /** When set, execute() refuses with this reason — stands in for a device-side fault (e.g. a dry water tank). */
+  executeError: string | null = null;
+  readonly state: { lamp: DeviceState; vacuum: DeviceState; lock: DeviceState } & Record<string, DeviceState> = {
     lamp: { online: true, values: { on: false } },
     vacuum: { online: true, values: { operationalState: 'docked' } },
     lock: { online: false, values: { locked: true } },
@@ -41,6 +43,7 @@ export class FakeGateway implements DeviceGateway {
     this.calls.push({ id, capability, params, requestId: ctx.requestId });
     const s = this.state[id];
     if (!s?.online) return { ok: false, error: 'device is offline', state: {} };
+    if (this.executeError) return { ok: false, error: this.executeError, state: { ...s.values } };
     if (capability === 'OnOff') s.values.on = params.on;
     if (capability === 'RvcRunMode') s.values.operationalState = params.mode === 'cleaning' ? 'running' : 'docked';
     return { ok: true, error: null, state: { ...s.values } };

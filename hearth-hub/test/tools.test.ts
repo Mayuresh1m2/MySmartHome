@@ -21,8 +21,8 @@ describe('tool registry', () => {
       expect(z.toJSONSchema(t.args)).toMatchObject({ type: 'object' });
     }
   });
-  it('no tool in this version is above read risk', () => {
-    expect(allTools.every((t) => t.risk === 'read')).toBe(true);
+  it('no tool in this version is high risk (voice reaches medium at most)', () => {
+    expect(allTools.every((t) => t.risk !== 'high')).toBe(true);
   });
 });
 

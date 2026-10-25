@@ -14,6 +14,18 @@ export class KeywordRouter implements IntentEngine {
     if (/\b(disk|space|storage)\b/.test(text) && !/\b(delete|remove|clear|free up|format|wipe|erase|buy|order)\b/.test(text)) {
       return { kind: 'tool', tool: 'disk_space', args: {} };
     }
+    // Vacuum status (read) — must come before the clean route, which also matches "vacuum".
+    // "is the vacuum ok", "what's the vacuum doing", "why did the vacuum stop", "vacuum status".
+    if (
+      /\b(vacuum|hoover)\b/.test(text) &&
+      /\b(status|doing|ok|okay|working|running|stuck|wrong|stop|stopped|finished|done|happening|why|how)\b/.test(text)
+    ) {
+      return { kind: 'tool', tool: 'vacuum_status', args: {} };
+    }
+    // Vacuum: "clean the house", "clean my house", "vacuum the house", "run the vacuum".
+    if ((/\bclean\b/.test(text) && /\b(house|home|place|floors?)\b/.test(text)) || /\b(vacuum|hoover)\b/.test(text)) {
+      return { kind: 'tool', tool: 'clean_house', args: {} };
+    }
     const folder = text.match(/\b(?:list|what'?s in|what is in|show(?: me)?)\s+(?:my |the )?([a-z0-9_-]+)(?: folder)?\b/);
     if (folder?.[1] && !/\b(delete|remove)\b/.test(text)) {
       return { kind: 'tool', tool: 'list_folder', args: { folder: folder[1] } };
