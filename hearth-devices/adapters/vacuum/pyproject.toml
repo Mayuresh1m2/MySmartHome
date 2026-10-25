@@ -1,0 +1,32 @@
+[project]
+name = "hearth-adapter-vacuum"
+version = "0.1.0"
+description = "Hearth adapter for the Dreame L10 Prime robot vacuum (Dreamehome cloud; control is class 3)"
+requires-python = ">=3.12"
+# Runtime deps for the vendored Dreamehome cloud protocol (vendor/dreamehome).
+# All ship manylinux wheels -> no native compilation.
+dependencies = [
+    "hearth-devices-sdk",
+    "paho-mqtt>=2.1.0",
+    "pycryptodome>=3.20.0",
+    "cryptography>=43.0.0",
+    "requests>=2.32.0",
+    # NB: not depending on python-miio. It pulls `netifaces` (a C extension needing
+    # Python.h / a compiler) and is only used by the *local* miio class in the vendored
+    # protocol, which the Dreamehome cloud path never touches. vendor/miio is a tiny stub
+    # so `from miio.miioprotocol import MiIOProtocol` resolves without the native dep.
+]
+
+[project.scripts]
+hearth-adapter-vacuum = "hearth_adapter_vacuum:main"
+
+[tool.uv.sources]
+hearth-devices-sdk = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.10.11,<0.11.0"]
+build-backend = "uv_build"
+
+# The vendored protocol lives under vendor/ (not packaged); scripts add it to sys.path.
+[tool.uv.build-backend]
+module-root = "src"

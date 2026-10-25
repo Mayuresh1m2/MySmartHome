@@ -18,6 +18,8 @@ dev = ["pytest>=9.1.1", "pytest-asyncio>=1.4.0", "ruff>=0.17.1"]
 [tool.ruff]
 line-length = 120
 target-version = "py312"
+# Vendored third-party code (kept verbatim; see adapters/*/vendor/*/NOTICE.md).
+extend-exclude = ["**/vendor/**"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "ASYNC", "RUF"]
