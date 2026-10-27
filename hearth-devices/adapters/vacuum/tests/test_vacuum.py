@@ -7,6 +7,8 @@ without touching the network or moving a robot.
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
 import hearth_adapter_vacuum as va
@@ -18,12 +20,20 @@ class FakeCloud:
     def __init__(self, props: dict[str, Any] | None = None) -> None:
         self.props = props or {"status": 14, "battery": 100, "error": 0}
         self.calls: list[tuple[int, int]] = []
+        self.sets: list[tuple[int, int, int]] = []
+        # One ordered timeline so a test can assert the mode is set *before* START.
+        self.events: list[tuple] = []
 
     def read_props(self) -> dict[str, Any]:
         return dict(self.props)
 
     def call(self, siid: int, aiid: int) -> None:
         self.calls.append((siid, aiid))
+        self.events.append(("call", siid, aiid))
+
+    def set_property(self, siid: int, piid: int, value: int) -> None:
+        self.sets.append((siid, piid, value))
+        self.events.append(("set", siid, piid, value))
 
 
 def make(props: dict[str, Any] | None = None) -> tuple[va.VacuumAdapter, FakeCloud]:
@@ -31,6 +41,22 @@ def make(props: dict[str, Any] | None = None) -> tuple[va.VacuumAdapter, FakeClo
     cloud = FakeCloud(props)
     adapter._cloud = cloud  # type: ignore[assignment]
     return adapter, cloud
+
+
+@pytest.fixture(autouse=True)
+def _isolate_clean_mode(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Point the clean-mode store at an empty temp path so tests never read the real secrets file."""
+    store = tmp_path / "vacuum_clean_mode.json"
+    monkeypatch.setattr(va, "CLEAN_MODE_PATH", store)
+    return store
+
+
+def write_clean_mode(store: Path, *, default: str | None = "mopping_after_sweeping",
+                     value: int = 133634) -> None:
+    doc: dict[str, Any] = {"modes": {"mopping_after_sweeping": {"value": value, "note": "two passes"}}}
+    if default is not None:
+        doc["default"] = default
+    store.write_text(json.dumps(doc))
 
 
 def set_cmd(capability: str, params: dict[str, Any]) -> SetCommand:
@@ -112,3 +138,82 @@ async def test_unknown_capability_is_refused() -> None:
     adapter, _ = make()
     with pytest.raises(CommandError):
         await adapter.execute(va.DEVICE_ID, set_cmd("DoorLock", {"locked": False}))
+
+
+# --- capture-and-replay cleaning mode (default: two-pass) ---------------------------------------
+
+
+def test_load_clean_modes_reads_default_and_values(_isolate_clean_mode: Path) -> None:
+    write_clean_mode(_isolate_clean_mode, value=133634)
+    default, modes = va._load_clean_modes()
+    assert default == "mopping_after_sweeping"
+    assert modes == {"mopping_after_sweeping": 133634}
+
+
+def test_load_clean_modes_empty_when_no_file(_isolate_clean_mode: Path) -> None:
+    assert va._load_clean_modes() == (None, {})
+
+
+def test_load_clean_modes_ignores_unknown_default_and_bad_values(_isolate_clean_mode: Path) -> None:
+    _isolate_clean_mode.write_text(json.dumps({
+        "default": "not_captured",
+        "modes": {"sweeping": {"value": "oops"}, "mopping": {"value": True}, "ok": {"value": 42}},
+    }))
+    default, modes = va._load_clean_modes()
+    assert default is None  # the named default wasn't among the captured modes
+    assert modes == {"ok": 42}  # string and bool values are dropped
+
+
+async def test_armed_clean_sets_the_captured_mode_before_start(
+    monkeypatch: pytest.MonkeyPatch, _isolate_clean_mode: Path
+) -> None:
+    monkeypatch.setenv("VACUUM_ARMED", "1")
+    write_clean_mode(_isolate_clean_mode, value=133634)
+    adapter, cloud = make()
+    await adapter.execute(va.DEVICE_ID, set_cmd("RvcRunMode", {"mode": "cleaning"}))
+    # The mode is written at 4/23, then START is sent — in that order.
+    assert cloud.sets == [(va.CLEANING_MODE[0], va.CLEANING_MODE[1], 133634)]
+    assert cloud.calls == [va.ACTION_START]
+    assert cloud.events == [("set", 4, 23, 133634), ("call", *va.ACTION_START)]
+
+
+async def test_armed_clean_without_a_capture_sends_plain_start(
+    monkeypatch: pytest.MonkeyPatch, _isolate_clean_mode: Path
+) -> None:
+    monkeypatch.setenv("VACUUM_ARMED", "1")  # no capture file written
+    adapter, cloud = make()
+    await adapter.execute(va.DEVICE_ID, set_cmd("RvcRunMode", {"mode": "cleaning"}))
+    assert cloud.sets == []  # nothing to replay -> robot keeps the app's last mode
+    assert cloud.calls == [va.ACTION_START]
+
+
+async def test_dry_run_with_a_capture_still_sends_nothing(
+    monkeypatch: pytest.MonkeyPatch, _isolate_clean_mode: Path
+) -> None:
+    monkeypatch.delenv("VACUUM_ARMED", raising=False)
+    write_clean_mode(_isolate_clean_mode)
+    adapter, cloud = make()
+    await adapter.execute(va.DEVICE_ID, set_cmd("RvcRunMode", {"mode": "cleaning"}))
+    assert cloud.sets == [] and cloud.calls == []  # dry run: mode is not even set
+
+
+async def test_docking_never_sets_the_clean_mode(
+    monkeypatch: pytest.MonkeyPatch, _isolate_clean_mode: Path
+) -> None:
+    monkeypatch.setenv("VACUUM_ARMED", "1")
+    write_clean_mode(_isolate_clean_mode)
+    adapter, cloud = make()
+    await adapter.execute(va.DEVICE_ID, set_cmd("RvcRunMode", {"mode": "idle"}))
+    assert cloud.sets == []  # returning to the dock leaves the mode alone
+    assert cloud.calls == [va.ACTION_CHARGE]
+
+
+async def test_standing_fault_refuses_before_setting_the_mode(
+    monkeypatch: pytest.MonkeyPatch, _isolate_clean_mode: Path
+) -> None:
+    monkeypatch.setenv("VACUUM_ARMED", "1")
+    write_clean_mode(_isolate_clean_mode)
+    adapter, cloud = make({"status": 1, "battery": 100, "error": 107})  # dry tank
+    with pytest.raises(CommandError, match="water tank is dry"):
+        await adapter.execute(va.DEVICE_ID, set_cmd("RvcRunMode", {"mode": "cleaning"}))
+    assert cloud.sets == [] and cloud.calls == []  # neither mode nor start was sent

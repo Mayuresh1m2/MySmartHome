@@ -48,6 +48,8 @@ logging.getLogger("dreamehome").setLevel(logging.CRITICAL)  # never surface vend
 from dreamehome.protocol import DreameVacuumDreameHomeCloudProtocol  # noqa: E402
 
 SESSION_PATH = _ADAPTER_ROOT.parent.parent / "secrets" / "vacuum_session.json"
+# Captured cleaning-mode values for capture-and-replay (written by scripts/capture_clean_mode.py).
+CLEAN_MODE_PATH = _ADAPTER_ROOT.parent.parent / "secrets" / "vacuum_clean_mode.json"
 DEVICE_ID = "vacuum"
 
 # --- capability schemas -------------------------------------------------------------------------
@@ -75,6 +77,34 @@ PROPS: dict[str, tuple[int, int]] = {
 # START = full auto clean (NOT START_CUSTOM 4/1, which needs map/zone params); CHARGE = go home.
 ACTION_START = (2, 1)
 ACTION_CHARGE = (3, 1)
+
+# Cleaning-mode property (siid, piid). On r2471 its value is a *packed* integer, not a 0-3 enum, whose
+# layout depends on capabilities the vendor detects at runtime. Rather than reconstruct it (a wrong value
+# is a risky write), we replay the exact integer the robot reports when the app is set to the wanted mode,
+# captured idle by scripts/capture_clean_mode.py. Default is my wife's preference: vacuum then mop, two
+# passes ("mopping_after_sweeping"). See progress/43 and hearth-devices/CLAUDE.md (RvcCleanMode).
+CLEANING_MODE = (4, 23)
+
+
+def _load_clean_modes() -> tuple[str | None, dict[str, int]]:
+    """Read captured cleaning-mode values from the gitignored secrets store (capture-and-replay).
+
+    Returns (default_mode_name, {mode_name: packed_value}). Empty when nothing has been captured yet, in
+    which case the adapter sends a plain START and the robot keeps whatever mode the Dreame app last set.
+    """
+    try:
+        store = json.loads(CLEAN_MODE_PATH.read_text())
+    except Exception:
+        return None, {}
+    modes: dict[str, int] = {}
+    for name, entry in (store.get("modes") or {}).items():
+        value = entry.get("value") if isinstance(entry, dict) else None
+        if isinstance(value, int) and not isinstance(value, bool):
+            modes[name] = value
+    default = store.get("default")
+    if default not in modes:
+        default = None
+    return default, modes
 
 STATUS_WORDS = {
     -1: "unknown", 0: "idle", 1: "paused", 2: "cleaning", 3: "returning", 4: "partial",
@@ -188,6 +218,25 @@ class _Cloud:
             if isinstance(resp, dict) and resp.get("code") not in (0, None):
                 raise CommandError(f"vacuum refused the command (code {resp.get('code')})")
 
+    def set_property(self, siid: int, piid: int, value: int) -> None:
+        """Write one MIoT property (used only to replay a captured clean-mode value before a clean).
+
+        Uses the cloud protocol's generic `send`, symmetric to read_props' get_properties — the
+        higher-level set_property helper lives on a different vendored class we don't instantiate.
+        """
+        with self._lock:
+            proto = self._ensure_login()
+            resp = proto.send(
+                "set_properties",
+                [{"did": self._did, "siid": siid, "piid": piid, "value": value}],
+            )
+            if not resp:  # None -> cloud unreachable / rejected
+                raise CommandError("vacuum unreachable while setting clean mode")
+            # MIoT set_properties returns [{siid,piid,code}]; code 0 (or absent) means applied.
+            codes = [it.get("code") for it in resp if isinstance(it, dict)]
+            if any(c not in (0, None) for c in codes):
+                raise CommandError(f"vacuum refused the clean-mode set (code {codes})")
+
 
 def _as_int(value: Any) -> int | None:
     try:
@@ -245,13 +294,30 @@ class VacuumAdapter(Adapter):
         siid, aiid = ACTION_START if mode == "cleaning" else ACTION_CHARGE
         verb = "START clean" if mode == "cleaning" else "return to dock"
 
+        # Before a clean, replay the captured cleaning-mode value (default: two-pass) so the robot runs
+        # my wife's preferred mode instead of inheriting whatever the Dreame app was last set to. Only
+        # applies to a clean; docking never touches the mode. No capture on file -> plain START.
+        clean_name, clean_value = (None, None)
+        if mode == "cleaning":
+            default_name, modes = _load_clean_modes()
+            if default_name is not None:
+                clean_name, clean_value = default_name, modes[default_name]
+        log_extra = {"deviceId": device_id, "requestId": cmd.requestId}
+
         if not _armed():
             # Dry run: exercise the whole chain without moving the robot. ok=true is intentional so
             # the hub plays its success reply and we can see the end-to-end path light up.
-            runner_log.info(
-                "dry-run (VACUUM_ARMED not set): would send %s (siid=%d aiid=%d); nothing sent",
-                verb, siid, aiid, extra={"deviceId": device_id, "requestId": cmd.requestId},
-            )
+            if clean_value is not None:
+                runner_log.info(
+                    "dry-run (VACUUM_ARMED not set): would set clean mode %s (%d/%d=%d) then send %s; "
+                    "nothing sent", clean_name, CLEANING_MODE[0], CLEANING_MODE[1], clean_value, verb,
+                    extra=log_extra,
+                )
+            else:
+                runner_log.info(
+                    "dry-run (VACUUM_ARMED not set): would send %s (siid=%d aiid=%d); nothing sent",
+                    verb, siid, aiid, extra=log_extra,
+                )
             return None  # re-read: reflects real (unchanged) state
 
         if mode == "cleaning":
@@ -262,10 +328,17 @@ class VacuumAdapter(Adapter):
             reason = _fault_reason((await asyncio.to_thread(self._cloud.read_props)).get("error"))
             if reason:
                 raise CommandError(reason)
+            if clean_value is not None:
+                runner_log.info(
+                    "ARMED: setting clean mode %s (%d/%d=%d)", clean_name, CLEANING_MODE[0],
+                    CLEANING_MODE[1], clean_value, extra=log_extra,
+                )
+                await asyncio.to_thread(
+                    self._cloud.set_property, CLEANING_MODE[0], CLEANING_MODE[1], clean_value
+                )
 
         runner_log.info(
-            "ARMED: sending %s (siid=%d aiid=%d)", verb, siid, aiid,
-            extra={"deviceId": device_id, "requestId": cmd.requestId},
+            "ARMED: sending %s (siid=%d aiid=%d)", verb, siid, aiid, extra=log_extra,
         )
         await asyncio.to_thread(self._cloud.call, siid, aiid)
         return None  # re-read fresh state from the cloud

@@ -70,8 +70,8 @@ All checks passed!
 
 Owner added `secrets/dreame.env`; ran `scripts/run.sh login_probe.py`.
 - Region `in` failed; **`sg` succeeded** (Dreame serves India from Singapore).
-- One device: name "Vaccum", **model `dreame.vacuum.r2471`**, MAC **70:C9:32:E4:EC:D9**,
-  did `2034776152`, online.
+- One device on the account: name "Vaccum", **model `dreame.vacuum.r2471`**, online. Its real cloud
+  MAC and did are not recorded here; they live in gitignored `secrets/vacuum_session.json`.
 - **Password worked once and was NOT stored**; the revocable token (+ username, region,
   did, model, mac) persisted to `secrets/vacuum_session.json` (0600, gitignored, no
   password field). A second run with the password blanked logged in **via the stored
